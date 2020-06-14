@@ -11,6 +11,7 @@ debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.yml")
 
+
 def get_config():
     with open(CONFIG_PATH) as f:
         return yaml.load(f, Loader=yaml.FullLoader)
@@ -62,6 +63,7 @@ class Settings(wx.Dialog):
 
     def GetSettings(self):
         return self.settings
+
 
 class SettingsFrame(wx.Frame):
     """
@@ -150,8 +152,6 @@ class MainInvisibleWindow(wx.Frame):
         self.sync_jobs = []
 
 
-
-
 class App(wx.App):
 
     def OnInit(self):
@@ -160,6 +160,7 @@ class App(wx.App):
         self.SetTopWindow(frame)
         TaskBarIcon(frame)
         return True
+
 
 def main():
     app = App(False)
