@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+	<object class="wxMenuBar" name="m_menubar1">
+		<object class="wxMenu" name="File">
+			<label>File</label>
+			<object class="wxMenuItem" name="m_settings">
+				<label>Settings</label>
+				<help></help>
+			</object>
+			<object class="wxMenuItem" name="m_generate_keys">
+				<label>Generate new SSH keys</label>
+				<help>Generates SSH keys so you can place them in the rdiff server</help>
+			</object>
+			<object class="wxMenuItem" name="m_show_public_key">
+				<label>Show Public Key</label>
+				<help>Generates SSH keys so you can place them in the rdiff server</help>
+			</object>
+			<object class="wxMenuItem" name="m_exit">
+				<label>Exit</label>
+				<help></help>
+			</object>
+		</object>
+	</object>
+	<object class="wxPanel" name="MainPanel">
+		<style>wxTAB_TRAVERSAL</style>
+		<size>1000,721</size>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="m_staticText3">
+					<label>Jobs</label>
+					<wrap>-1</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxListCtrl" name="m_list_syncs" subclass="backupfriend.sub.ResizedSecondList">
+					<style>wxLC_EDIT_LABELS|wxLC_REPORT</style>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxToolBar" name="m_toolBar1">
+					<style>wxTB_HORIZONTAL</style>
+					<bitmapsize></bitmapsize>
+					<margins></margins>
+					<packing>1</packing>
+					<separation>5</separation>
+					<object class="wxButton" name="m_run">
+						<enabled>0</enabled>
+						<label>Run</label>
+						<default>0</default>
+						<auth_needed>0</auth_needed>
+						<markup>0</markup>
+						<bitmap />
+					</object>
+					<object class="wxButton" name="m_edit">
+						<enabled>0</enabled>
+						<label>Edit</label>
+						<default>0</default>
+						<auth_needed>0</auth_needed>
+						<markup>0</markup>
+						<bitmap />
+					</object>
+					<object class="wxButton" name="m_delete">
+						<enabled>0</enabled>
+						<label>Delete</label>
+						<default>0</default>
+						<auth_needed>0</auth_needed>
+						<markup>0</markup>
+						<bitmap />
+					</object>
+					<object class="wxButton" name="m_go_to_server">
+						<enabled>0</enabled>
+						<label>Go to Server</label>
+						<default>0</default>
+						<auth_needed>0</auth_needed>
+						<markup>0</markup>
+						<bitmap />
+					</object>
+					<object class="wxStaticLine" name="m_staticline2">
+						<style>wxLI_VERTICAL</style>
+					</object>
+					<object class="wxButton" name="m_add">
+						<label>Add</label>
+						<default>0</default>
+						<auth_needed>0</auth_needed>
+						<markup>0</markup>
+						<bitmap />
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxEXPAND | wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticLine" name="m_staticline1">
+					<style>wxLI_HORIZONTAL</style>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxHORIZONTAL</orient>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxVERTICAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag></flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText1">
+									<label>Runs</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxListCtrl" name="m_list_runs" subclass="backupfriend.sub.ResizedList">
+									<style>wxLC_EDIT_LABELS|wxLC_REPORT</style>
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxVERTICAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag></flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_log_label">
+									<label>Log</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxBoxSizer">
+									<orient>wxVERTICAL</orient>
+									<object class="sizeritem">
+										<option>0</option>
+										<flag>wxALL|wxEXPAND|wxSHAPED</flag>
+										<border>5</border>
+										<object class="wxTextCtrl" name="m_console">
+											<style>wxTE_MULTILINE</style>
+											<value></value>
+										</object>
+									</object>
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+	<object class="wxWizard" name="first_run_wizard" subclass="backupfriend.sub.FirstRunWizard">
+		<style>wxDEFAULT_DIALOG_STYLE</style>
+		<title>First Time Setup</title>
+		<centered>1</centered>
+		<object class="wxWizardPageSimple" name="m_wizPage1">
+			<object class="wxBoxSizer">
+				<orient>wxVERTICAL</orient>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL</flag>
+					<border>5</border>
+					<object class="wxStaticText" name="m_staticText4">
+						<label>Welcome to BackupFriend first time setup.\n\nIn order to use BackupFriend you need to have a running server your friend has setup so you can sync files to it.\n\nIn this setup we will create ssh keys so you can securely copy files across the network.\n\nIn the end you will have a public key to provide the remote server to sync your files.\n</label>
+						<wrap>-1</wrap>
+					</object>
+				</object>
+			</object>
+		</object>
+		<object class="wxWizardPageSimple" name="m_wiz_gnerate_keys">
+			<object class="wxBoxSizer">
+				<orient>wxVERTICAL</orient>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL|wxEXPAND</flag>
+					<border>5</border>
+					<object class="wxStaticText" name="m_staticText5">
+						<label>Press this button to generate new SSH keys and save them to your data folder</label>
+						<wrap>-1</wrap>
+					</object>
+				</object>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL|wxEXPAND</flag>
+					<border>5</border>
+					<object class="wxButton" name="m_generate_keys">
+						<label>Generate SSH keys</label>
+						<default>0</default>
+						<auth_needed>0</auth_needed>
+						<markup>0</markup>
+						<bitmap />
+					</object>
+				</object>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL</flag>
+					<border>5</border>
+					<object class="wxStaticText" name="m_result">
+						<label></label>
+						<wrap>-1</wrap>
+					</object>
+				</object>
+			</object>
+		</object>
+		<object class="wxWizardPageSimple" name="m_wizPage3">
+			<object class="wxBoxSizer">
+				<orient>wxVERTICAL</orient>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL|wxEXPAND</flag>
+					<border>5</border>
+					<object class="wxStaticText" name="m_staticText6">
+						<label>Copy Key below</label>
+						<wrap>-1</wrap>
+					</object>
+				</object>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL|wxEXPAND|wxSHAPED</flag>
+					<border>5</border>
+					<object class="wxTextCtrl" name="m_public_key">
+						<style>wxTE_MULTILINE|wxTE_READONLY</style>
+						<value></value>
+					</object>
+				</object>
+				<object class="sizeritem">
+					<option>0</option>
+					<flag>wxALL</flag>
+					<border>5</border>
+					<object class="wxButton" name="m_select_all">
+						<label>Copy to clipboard</label>
+						<default>0</default>
+						<auth_needed>0</auth_needed>
+						<markup>0</markup>
+						<bitmap />
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+	<object class="wxDialog" name="show_key_dialog" subclass="backupfriend.sub.ShowPublicKeyDialog">
+		<style>wxDEFAULT_DIALOG_STYLE</style>
+		<title>Public Key</title>
+		<centered>1</centered>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="m_staticText8">
+					<label>Copy Public Key below</label>
+					<wrap>-1</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxTextCtrl" name="m_public_key">
+					<style>wxTE_MULTILINE</style>
+					<value></value>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxButton" name="m_select_all">
+					<label>Copy to clipboard</label>
+					<default>0</default>
+					<auth_needed>0</auth_needed>
+					<markup>0</markup>
+					<bitmap />
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxButton" name="m_close">
+					<label>close</label>
+					<default>0</default>
+					<auth_needed>0</auth_needed>
+					<markup>0</markup>
+					<bitmap />
+				</object>
+			</object>
+		</object>
+	</object>
+</resource>

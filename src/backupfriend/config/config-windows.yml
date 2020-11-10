@@ -1,0 +1,21 @@
+main:
+  bin: "__package_path__\rdiff-backup.exe"
+  # bin: "echo"
+backups:
+  - name: "test"
+    source: "/home/guy/xchat2.bak"
+    dest: "user@gnethomelinux.com::/backup-data/test"
+    port: "8022"
+    key: "/home/guy/.ssh/id_rsa_passwordless"
+    every: "daily"
+    # evrey: "sunday"
+    time: "19:52"
+
+  - name: "test2"
+    source: "/home/guy/xchat2.bak"
+    dest: "user@gnethomelinux.com::/backup-data/test"
+    port: "8022"
+    key: "/home/guy/.ssh/id_rsa_passwordless"
+    every: "daily"
+    # evrey: "sunday"
+    time: "04:32"
