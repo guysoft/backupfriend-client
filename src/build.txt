@@ -1,0 +1,5 @@
+pip install wget
+python -m wget https://download3.portableapps.com/portableapps/Notepad++Portable/NotepadPlusPlusPortable_7.8.5_Rev_3.paf.exe?20190321
+python -m wget https://github.com/rdiff-backup/rdiff-backup/releases/download/v2.0.5/rdiff-backup-2.0.5.win32exe.zip
+unzip rdiff-backup-2.0.5.win32exe.zip
+pyinstaller --add-data="backupfriend\config;backupfriend\config" --add-data="backupfriend\images;backupfriend\images" --add-data="backupfriend\res;backupfriend\res" --noconsole  --add-binary="rdiff-backup.exe;rdiff-backup.exe" backupfriend-client.py
