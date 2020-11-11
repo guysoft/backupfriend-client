@@ -1,0 +1,5 @@
+wxPython
+PyYAML
+schedule
+appdirs
+cryptography
