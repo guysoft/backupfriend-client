@@ -13,12 +13,12 @@ from backupfriend.common import get_data_path, ensure_dir, resource_path
 from collections.abc import Iterable
 import wx.lib.inspection
 import shutil
+import shlex
 
 TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
 TRAY_TOOLTIP = 'BackupFriend'
 
-
-#TODO:
+# TODO:
 # 1. Make settings window
 
 debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
@@ -151,7 +151,7 @@ class SettingsFrame(wx.Frame):
         """"""
         print("closing")
         # TODO - also delete from memmory
-        #self.Hide()
+        # self.Hide()
         self.Destroy()
         # print(self)
 
@@ -233,12 +233,12 @@ class MainFrame(wx.Frame):
         ## End Window init stuff ##
 
         # print(len(self.GetParent().sync_jobs))
-        
+
         self.m_console = xrc.XRCCTRL(self.panel, 'm_console')
-        
+
         self.m_list_syncs = xrc.XRCCTRL(self.panel, 'm_list_syncs')
         self.m_list_syncs.data_keys = ["name", "dest", "every", "time"]
-        
+
         self.m_list_runs = xrc.XRCCTRL(self.panel, 'm_list_runs')
         self.m_list_runs.data_keys = ["id", "Time Ran"]
 
@@ -276,7 +276,7 @@ class MainFrame(wx.Frame):
         wizard = self.res.LoadObject(None, 'first_run_wizard', 'wxWizard')
         page1 = wx.xrc.XRCCTRL(wizard, 'm_wizPage1')
         wizard.RunWizard(page1)
-    
+
     def select_run(self, event):
         self.current_run = event.Index
         item = event.GetItem()
@@ -297,13 +297,13 @@ class MainFrame(wx.Frame):
             self.m_list_runs.SetItem(i, self.m_list_runs.data_keys.index("id"), file_name)
             self.m_list_runs.SetItem(i, self.m_list_runs.data_keys.index("Time Ran"), job.get_run_created(file_name))
         self.m_list_runs.resizeLastColumn(0)
-                    
+
         return
-    
+
     def display_run(self, job_name, run_name):
         self.m_console.SetValue("")
         log = self.GetParent().get_job_by_name(job_name).get_log(run_name)
-        
+
         self.m_console.SetValue(log)
         return
 
@@ -315,11 +315,11 @@ class MainFrame(wx.Frame):
         dialog = self.res.LoadDialog(self, 'show_key_dialog')
         dialog.ShowModal()
         return
-    
+
     def open_settings(self, event):
         if debug:
             print("open settings")
-        if "win" in  sys.platform:
+        if "win" in sys.platform:
             os.system(CONFIG_PATH)
         else:
             os.system("xdg-open '" + CONFIG_PATH + "'")
@@ -328,7 +328,7 @@ class MainFrame(wx.Frame):
     def onClose(self, event):
         print("closing")
         # TODO - also delete from memmory
-        #self.Hide()
+        # self.Hide()
         self.Destroy()
         # print(self)
 
@@ -354,8 +354,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         icon = wx.Icon(path)
         self.SetIcon(icon, TRAY_TOOLTIP)
 
-    def on_left_down(self, event):      
-        print ('Tray icon was left-clicked.')
+    def on_left_down(self, event):
+        print('Tray icon was left-clicked.')
 
     def on_hello(self, event):
         if debug:
@@ -394,7 +394,7 @@ class SyncProcess(wx.Process):
 
     def OnTerminate(self, pid, status):
         self.terminated = True
-        
+
 
 @dataclass
 class Backup:
@@ -413,12 +413,12 @@ class Backup:
         if debug:
             print("Starting: " + str(self.name))
         self.id = self.get_id()
-        self.log_file = os.path.join(DATA_PATH, str(self.name), str(self.id))
+        self.log_file = os.path.join(self.get_run_folder(), str(self.id))
         if self.every == "daily":
             # schedule.every().seconds.do(
             #     lambda: self.run_backup())
             schedule.every().day.at(self.time).do(lambda: self.run_backup())
-            
+
     def get_run_folder(self):
         return os.path.join(DATA_PATH, "jobs_data", str(self.name))
 
@@ -433,7 +433,7 @@ class Backup:
                 return str(i)
 
         return len(log_files)
-    
+
     def get_log_files(self):
         run_folder = self.get_run_folder()
         return os.listdir(run_folder)
@@ -441,15 +441,15 @@ class Backup:
     def update_log(self, text):
         with open(self.log_file, "ab") as log:
             log.write(text)
-    
+
     def get_log(self, run_name):
         with open(os.path.join(self.get_run_folder(), run_name), "r") as log:
             return_value = log.read()
         return return_value
-            
+
     def get_run_created(self, run_id):
         run_path = os.path.join(self.get_run_folder(), run_id)
-        
+
         return time.ctime(os.path.getctime(run_path))
 
     def run_backup(self):
@@ -465,22 +465,42 @@ class Backup:
                 print("windows detected, adjusting binary path in package")
                 bin_path = bin_path.replace("__package_path__", resource_path())
 
-        cmd = [bin_path,
-               "-v6",
-               " --remote-schema 'ssh -p " + str(self.port) + " -i " + self.key + " %s rdiff-backup --server'",
-               "--",
-               self.source, self.dest]
+        if "win" in sys.platform:
+            # rdiff_path = r'"C:\Users\user\Desktop\backupfriend-client\src\rdiff-backup.exe"'
+            # ssh_path = r'C:\Users\user\Desktop\backupfriend-client\ssh.exe'
+            ssh_path = config["main"]["ssh"]
+            rdiff_path = config["main"]["bin"]
+            cmd = [rdiff_path, "-v6", "--remote-schema",
+                   '"' + ssh_path + " -p 8022 -i " + self.key + " %s rdiff-backup --server" + '"', "--", self.source,
+                   self.dest]
+            command = " ".join(cmd)
+            # command = "whoami"
+        else:
+            cmd = [bin_path,
+                   "-v6",
+                   " --remote-schema 'ssh -p " + str(self.port) + " -i " + self.key + " %s rdiff-backup --server'",
+                   "--", self.source, self.dest]
+            command = " ".join(cmd)
+
         if debug:
-            print("running: " + str(" ".join(cmd)))
-        self.pid = wx.Execute(" ".join(cmd), wx.EXEC_ASYNC, callback=self.process_object)
+            print("running: " + command)
+        print("running: " + str(command))
+        self.pid = wx.Execute(command, wx.EXEC_ASYNC, callback=self.process_object)
 
         if debug:
             print("pid: " + str(self.pid))
         time.sleep(1)
         stream = self.process_object.GetInputStream()
 
-        if stream.CanRead():
+        while stream is not None and stream.CanRead():
             text = stream.read()
+            self.update_log(text)
+            wx.LogMessage(text)
+
+        stream_err = self.process_object.GetErrorStream()
+
+        while stream_err is not None and stream_err.CanRead():
+            text = stream_err.read()
             self.update_log(text)
             wx.LogMessage(text)
 
@@ -497,7 +517,7 @@ class MainInvisibleWindow(wx.Frame):
         for backup in config["backups"]:
             backup_class = Backup(**backup, window=self)
             self.sync_jobs.append(backup_class)
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        # self.Bind(wx.EVT_IDLE, self.OnIdle)
 
         self.on_timer()
 
@@ -505,29 +525,41 @@ class MainInvisibleWindow(wx.Frame):
         # wx.CallLater(1000 * 60, self.on_timer)
         wx.CallLater(1000, self.on_timer)
         schedule.run_pending()
-        
-    def get_job_by_name(self, name):
-        for job in self.sync_jobs:
-            if debug:
-                print(job.name)
-                print(name)
-            if job.name == name:
-                return job
-        return
-
-    def OnIdle(self, evt):
-        # print("idle")
         if self.sync_jobs is not None:
             for sync_job in self.sync_jobs:
                 if sync_job.process_object is not None:
                     if sync_job.process_object.terminated:
+                        print("terminated")
+
+                        stream = sync_job.process_object.GetInputStream()
+
+                        while stream is not None and stream.CanRead():
+                            text = stream.read()
+                            sync_job.update_log(text)
+
+                            print(text.decode())
+
+                        stream_err = sync_job.process_object.GetErrorStream()
+
+                        while stream_err is not None and stream_err.CanRead():
+                            text = stream_err.read()
+                            sync_job.update_log(text)
+
                         sync_job.process_object = None
                     else:
                         try:
                             stream = sync_job.process_object.GetInputStream()
 
-                            if stream.CanRead():
+                            while stream is not None and stream.CanRead():
                                 text = stream.read()
+                                sync_job.update_log(text)
+
+                                print(text.decode())
+
+                            stream_err = sync_job.process_object.GetErrorStream()
+
+                            while stream_err is not None and stream_err.CanRead():
+                                text = stream_err.read()
                                 sync_job.update_log(text)
 
                                 print(text.decode())
@@ -537,6 +569,62 @@ class MainInvisibleWindow(wx.Frame):
                             # code.interact(local=dict(globals(), **locals()))
 
                 # print("Done idle")
+
+    def get_job_by_name(self, name):
+        for job in self.sync_jobs:
+            if debug:
+                print(job.name)
+                print(name)
+            if job.name == name:
+                return job
+        return
+
+
+##    def OnIdle(self, evt):
+##        if self.sync_jobs is not None:
+##            for sync_job in self.sync_jobs:
+##                if sync_job.process_object is not None:
+##                    if sync_job.process_object.terminated:
+##                        print("terminated")
+##
+##                        stream = sync_job.process_object.GetInputStream()
+##
+##                        while stream is not None and stream.CanRead():
+##                            text = stream.read()
+##                            sync_job.update_log(text)
+##
+##                            print(text.decode())
+##
+##                        stream_err = sync_job.process_object.GetErrorStream()
+##
+##                        while stream_err is not None and stream_err.CanRead():
+##                            text = stream_err.read()
+##                            sync_job.update_log(text)
+##
+##                        sync_job.process_object = None
+##                    else:
+##                        try:
+##                            stream = sync_job.process_object.GetInputStream()
+##
+##                            while stream is not None and stream.CanRead():
+##                                text = stream.read()
+##                                sync_job.update_log(text)
+##
+##                                print(text.decode())
+##
+##                            stream_err = sync_job.process_object.GetErrorStream()
+##
+##                            while stream_err is not None and stream_err.CanRead():
+##                                text = stream_err.read()
+##                                sync_job.update_log(text)
+##
+##                                print(text.decode())
+##                        except RuntimeError as e:
+##                            print(e)
+##                            # import code;
+##                            # code.interact(local=dict(globals(), **locals()))
+##
+##                # print("Done idle")
 
 
 class App(wx.App):
