@@ -20,9 +20,9 @@ jobs:
       with:
         args: unzip ./rdiff-backup-2.0.5.win32exe.zip -d .
         
-    - name: Move rdiff-backup to place
+    - name: Copy rdiff-backup to place
       run: |
-        mv ./rdiff-backup-2.0.5/rdiff-backup.exe ./rdiff-backup.exe 
+        cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./rdiff-backup.exe 
 
 
     - name: Package Application
