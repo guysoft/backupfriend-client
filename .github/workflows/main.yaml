@@ -22,7 +22,7 @@ jobs:
         
     - name: Copy rdiff-backup to place
       run: |
-        cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./rdiff-backup.exe 
+        cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./src/rdiff-backup.exe 
 
 
     - name: Package Application
