@@ -19,6 +19,11 @@ jobs:
       uses: TonyBogdanov/zip@1.0
       with:
         args: unzip ./rdiff-backup-2.0.5.win32exe.zip -d .
+        
+    - name: Move rdiff-backup to place
+      run: |
+        mv ./rdiff-backup-2.0.5/rdiff-backup.exe ./rdiff-backup.exe 
+
 
     - name: Package Application
       uses: JackMcKew/pyinstaller-action-windows@main
