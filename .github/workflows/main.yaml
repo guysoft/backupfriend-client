@@ -22,7 +22,9 @@ jobs:
         
     - name: Copy rdiff-backup to place
       run: |
-        cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./src/rdiff-backup.exe 
+        cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./src/rdiff-backup.exe
+        
+    - run: apt udpate && apt install -y python3-pip && pip3 install PyInstaller && pip3 install wxpython
 
 
     - name: Package Application
@@ -32,5 +34,5 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: name-of-artifact
+        name: backupfriend-client-win32
         path: src/dist/windows
