@@ -304,11 +304,226 @@
 				<flag>wxALL</flag>
 				<border>5</border>
 				<object class="wxButton" name="m_close">
-					<label>close</label>
+					<label>Close</label>
 					<default>0</default>
 					<auth_needed>0</auth_needed>
 					<markup>0</markup>
 					<bitmap />
+				</object>
+			</object>
+		</object>
+	</object>
+	<object class="wxDialog" name="job_dialog" subclass="backupfriend.sub.JobDialog">
+		<style>wxDEFAULT_DIALOG_STYLE</style>
+		<title>Create New Backup Job</title>
+		<centered>1</centered>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxGridSizer">
+					<rows>0</rows>
+					<cols>2</cols>
+					<vgap>0</vgap>
+					<hgap>0</hgap>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText11">
+							<label>Name</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxTextCtrl" name="m_name">
+							<value></value>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText12">
+							<label>Source</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxDirPickerCtrl" name="m_source">
+							<value></value>
+							<message>Select a folder</message>
+							<style>wxDIRP_DEFAULT_STYLE|wxDIRP_USE_TEXTCTRL</style>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText13">
+							<label>Destination</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxTextCtrl" name="m_dest">
+							<tooltip>user@hostname.com::/folder</tooltip>
+							<value>user@hostname.com::/folder</value>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText161">
+							<label>Port</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxSpinCtrlDouble" name="m_spinCtrlDouble1">
+							<style>wxSP_ARROW_KEYS</style>
+							<value>26.000000</value>
+							<min>0</min>
+							<max>65535</max>
+							<inc>1</inc>
+							<digits>0</digits>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText14">
+							<label>SSH Key</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxFilePickerCtrl" name="m_key_picker">
+							<value></value>
+							<message>Select the id__rsa key</message>
+							<wildcard>*.*</wildcard>
+							<style>wxFLP_DEFAULT_STYLE|wxFLP_USE_TEXTCTRL</style>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText15">
+							<label>Repeat</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText16">
+							<label>Daily (for now only option)</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText17">
+							<label>Time</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxTimePickerCtrl" name="m_timePicker1">
+							<style>wxTP_DEFAULT</style>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_info">
+							<label></label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="spacer">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<size>0,0</size>
+					</object>
+					<object class="spacer">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<size>0,0</size>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxALIGN_RIGHT</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxButton" name="m_test">
+									<label>Test</label>
+									<default>0</default>
+									<auth_needed>0</auth_needed>
+									<markup>0</markup>
+									<bitmap />
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxButton" name="m_cancel">
+									<label>Cancel</label>
+									<default>0</default>
+									<auth_needed>0</auth_needed>
+									<markup>0</markup>
+									<bitmap />
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxButton" name="m_save">
+									<label>Save</label>
+									<default>0</default>
+									<auth_needed>0</auth_needed>
+									<markup>0</markup>
+									<bitmap />
+								</object>
+							</object>
+						</object>
+					</object>
 				</object>
 			</object>
 		</object>

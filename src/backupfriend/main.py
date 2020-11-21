@@ -209,6 +209,7 @@ class MainFrame(wx.Frame):
         self.panel.SetLayoutDirection(wx.Layout_LeftToRight)
         self.SetLayoutDirection(wx.Layout_LeftToRight)
 
+        # Menu Logic
         self.SetMenuBar(self.menuBar)
         self.Bind(wx.EVT_MENU, self.exit, id=xrc.XRCID('m_exit'))
         self.Bind(wx.EVT_MENU, self.show_public_key, id=xrc.XRCID('m_show_public_key'))
@@ -219,6 +220,9 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_run, id=xrc.XRCID('m_list_runs'))
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
+
+        # Buttons
+        self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
 
         self.Centre()
         self.Show()
@@ -313,6 +317,11 @@ class MainFrame(wx.Frame):
 
     def show_public_key(self, event):
         dialog = self.res.LoadDialog(self, 'show_key_dialog')
+        dialog.ShowModal()
+        return
+
+    def show_create_dialog(self, event):
+        dialog = self.res.LoadDialog(self, 'job_dialog')
         dialog.ShowModal()
         return
 
