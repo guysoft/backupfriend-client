@@ -34,5 +34,5 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: backupfriend-client-win32
+        name: backupfriend-client-win64
         path: src/dist/windows
