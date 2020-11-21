@@ -16,8 +16,8 @@ jobs:
         args: -O rdiff-backup-2.0.5.win32exe.zip https://github.com/rdiff-backup/rdiff-backup/releases/download/v2.0.5/rdiff-backup-2.0.5.win32exe.zip
         
     - name: Decompress
-    uses: TonyBogdanov/zip@1.0
-    with:
+      uses: TonyBogdanov/zip@1.0
+      with:
         args: unzip -qq ./rdiff-backup-2.0.5.win32exe.zip -d ./target
 
     - name: Package Application
