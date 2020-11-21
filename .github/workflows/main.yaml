@@ -24,7 +24,7 @@ jobs:
       run: |
         cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./src/rdiff-backup.exe
         
-    - run: apt udpate && apt install -y python3-pip && pip3 install PyInstaller && pip3 install wxpython
+    - run: apt update && apt install -y python3-pip && pip3 install PyInstaller && pip3 install wxpython
 
 
     - name: Package Application
