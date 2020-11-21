@@ -18,7 +18,7 @@ jobs:
     - name: Decompress
       uses: TonyBogdanov/zip@1.0
       with:
-        args: unzip -qq ./rdiff-backup-2.0.5.win32exe.zip -d ./target
+        args: unzip ./rdiff-backup-2.0.5.win32exe.zip -d .
 
     - name: Package Application
       uses: JackMcKew/pyinstaller-action-windows@main
