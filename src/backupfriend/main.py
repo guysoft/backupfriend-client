@@ -223,6 +223,7 @@ class MainFrame(wx.Frame):
 
         # Buttons
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
+        self.Bind(wx.EVT_BUTTON, self.run_job, id=xrc.XRCID('m_run'))
 
         self.Centre()
         self.Show()
@@ -274,7 +275,20 @@ class MainFrame(wx.Frame):
         if debug:
             print("Selected: " + job_name)
         self.display_job(job_name)
+        m_run = xrc.XRCCTRL(self.panel, 'm_run')
+        m_run.Enable()
         return
+
+    def run_job(self, event):
+        if debug:
+            print("Running: " + str(self.current_job))
+        job = self.GetParent().get_job_by_name(self.current_job)
+        if not job.running():
+            job.run_backup()
+        else:
+            print("Job already running")
+
+
 
     def start_first_time_wizard(self, event=None):
         wizard = self.res.LoadObject(None, 'first_run_wizard', 'wxWizard')
@@ -416,13 +430,17 @@ class Backup:
     time: str
     window: wx.Frame
 
-    def __post_init__(self):
+    def prepare_job(self):
         self.process_object = None
         self.pid = None
         if debug:
             print("Starting: " + str(self.name))
         self.id = self.get_id()
         self.log_file = os.path.join(self.get_run_folder(), str(self.id))
+        return
+
+    def __post_init__(self):
+        self.prepare_job()
         if self.every == "daily":
             # schedule.every().seconds.do(
             #     lambda: self.run_backup())
@@ -460,6 +478,9 @@ class Backup:
         run_path = os.path.join(self.get_run_folder(), run_id)
 
         return time.ctime(os.path.getctime(run_path))
+
+    def running(self):
+        return self.process_object is not None and ( not self.process_object.terminated)
 
     def run_backup(self):
         if debug:

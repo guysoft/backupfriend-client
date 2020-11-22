@@ -1,0 +1,19 @@
+#!/bin/bash
+mkdir ssh_bin
+pushd ssh_bin
+  wget https://www.mls-software.com/files/setupssh-8.4p1-1.exe
+  7z e -aou setupssh-8.4p1-1.exe
+
+  # Get only 64 bit
+  rm $(file * | grep 80386 | awk  '{print substr($1, 1, length($1)-1)}' | xargs)
+
+  for i in *; do
+     FROM=$i
+     TO=$(echo $i | sed 's/_1//g')
+     if [ "$FROM" != "$TO" ]; then
+       mv "$FROM" "$TO"
+     fi
+  done
+popd
+
+# objdump --private-headers ssh.exe | grep dll | awk '{ print $3 }'
