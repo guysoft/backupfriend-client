@@ -1,0 +1,40 @@
+name: Package Application with Pyinstaller
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: wget-rdiff-backup
+      uses: wei/wget@v1
+      with:
+        args: -O rdiff-backup-2.0.5.win32exe.zip https://github.com/rdiff-backup/rdiff-backup/releases/download/v2.0.5/rdiff-backup-2.0.5.win32exe.zip
+        
+    - name: Decompress
+      uses: TonyBogdanov/zip@1.0
+      with:
+        args: unzip ./rdiff-backup-2.0.5.win32exe.zip -d .
+        
+    - name: Copy rdiff-backup to place
+      run: |
+        cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./src/rdiff-backup.exe
+    
+    - name: Copy requirements.txt to place
+      run: |
+        cp ./requirements.txt ./src/requirements.txt
+
+
+    - name: Package Application
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: src
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: backupfriend-client-win64
+        path: src/dist/windows
