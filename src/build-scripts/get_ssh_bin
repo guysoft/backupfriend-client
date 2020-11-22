@@ -17,6 +17,6 @@ pushd ssh_bin
 popd
 
 mkdir ssh-bin
-cp ssh_bin/cygcrypto-1.1.dll  ssh_bin/cygwin1.dll  ssh_bin/cyggssapi_krb5-2.dll  ssh_bin/cygz.dll ssh_bin/ssh.exe ssh-bin
+cp ssh_bin/cygcrypto-1.1.dll  ssh_bin/cygwin1.dll  ssh_bin/cyggssapi_krb5-2.dll  ssh_bin/cygz.dll ssh_bin/ssh.exe cygk5crypto-3.dll cygkrb5-3.dll cygkrb5support-0.dll cygcom_err-2.dll ssh-bin
 
 # objdump --private-headers ssh.exe | grep dll | awk '{ print $3 }'
