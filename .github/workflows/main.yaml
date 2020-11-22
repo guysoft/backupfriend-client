@@ -26,6 +26,7 @@ jobs:
     - run: sudo apt-get update && sudo apt install -y p7zip-full file gawk wget
 
     - name: extract ssh.exe and deps
+      working-directory: ./src
       run: |
         bash -x build-scripts/get_ssh_bin
     
