@@ -506,7 +506,7 @@ class Backup:
             bin_path = bin_path.replace("__package_path__", resource_path())
             
             cmd = [bin_path, "-v6", "--remote-schema",
-                   '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i " + self.key + " %s rdiff-backup --server" + '"', "--", self.source,
+                   '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", self.source,
                    self.dest]
             command = " ".join(cmd)
             known_hosts_location = os.path.realpath(os.path.join(os.path.dirname(ssh_path), "..", "home", os.getlogin()))
@@ -584,7 +584,6 @@ class MainInvisibleWindow(wx.Frame):
                             sync_job.update_log(text)
 
                         sync_job.process_object = None
-                        sync_job.prepare_job()
                     else:
                         try:
                             stream = sync_job.process_object.GetInputStream()
