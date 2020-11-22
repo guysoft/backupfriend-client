@@ -23,6 +23,11 @@ jobs:
     - name: Copy rdiff-backup to place
       run: |
         cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./src/rdiff-backup.exe
+    - run: sudo apt-get update && sudo apt install -y p7zip-full file gawk wget
+
+    - name: extract ssh.exe and deps
+      run: |
+        bash -x build-scripts/get_ssh_bin
     
     - name: Copy requirements.txt to place
       run: |

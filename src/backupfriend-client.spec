@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['backupfriend-client.py'],
-             binaries=[('rdiff-backup.exe', 'bin')],
+             binaries=[('rdiff-backup.exe', 'bin'), ('ssh_bin/cygcrypto-1.1.dll', 'bin'), ('ssh_bin/cygwin1.dll', 'bin'), ('ssh_bin/cyggssapi_krb5-2.dll', 'bin'), ('ssh_bin/cygz.dll', 'bin'), ('ssh_bin/ssh.exe', 'bin')],
              datas=[('backupfriend\\config', 'backupfriend\\config'), ('backupfriend\\images', 'backupfriend\\images'), ('backupfriend\\res', 'backupfriend\\res')],
              hiddenimports=[],
              hookspath=[],
