@@ -24,7 +24,7 @@ jobs:
       run: |
         cp ./rdiff-backup-2.0.5/rdiff-backup.exe ./src/rdiff-backup.exe
         
-    - run: sudo apt-get update && sudo apt install -y python3-pip python3-setuptools build-essential make gcc libgtk-3-dev libwebkitgtk-dev libwebkitgtk-3.0-dev libgstreamer-gl1.0-0 freeglut3 freeglut3-dev python-gst-1.0 python3-gst-1.0 libglib2.0-dev ubuntu-restricted-extras libgstreamer-plugins-base1.0-dev && sudo pip3 install PyInstaller && pip3 install wxpython
+    - run: sudo apt-get update && sudo apt install -y python3-pip python3-setuptools build-essential make gcc libgtk-3-dev libwebkitgtk-dev libwebkitgtk-3.0-dev libgstreamer-gl1.0-0 freeglut3 freeglut3-dev python-gst-1.0 python3-gst-1.0 libglib2.0-dev ubuntu-restricted-extras libgstreamer-plugins-base1.0-dev
     
     - name: Copy requirements.txt to place
       run: |
