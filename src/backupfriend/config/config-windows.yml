@@ -1,7 +1,6 @@
 main:
-  bin: "C:\\Users\\user\\Desktop\\backupfriend-client\\src\\rdiff-backup.exe"
-  ssh: "C:\\Users\\user\\Desktop\\backupfriend-client\\ssh.exe"
-  # bin: "__package_path__\rdiff-backup.exe"
+  bin: "__package_path__\\bin\\rdiff-backup.exe"
+  ssh: "__package_path__\\bin\\ssh.exe"
 backups:
   - name: "test"
     source: "c:\\a"
@@ -13,10 +12,10 @@ backups:
     time: "20:47"
 
   - name: "test2"
-    source: "/home/guy/xchat2.bak"
-    dest: "user@gnethomelinux.com::/backup-data/test"
+    source: "c:\\a"
+    dest: "user@gnethomelinux.com::/tmp/a"
     port: "8022"
-    key: "/home/guy/.ssh/id_rsa_passwordless"
+    key: "c:\\b\\id_rsa"
     every: "daily"
     # evrey: "sunday"
-    time: "04:32"
+    time: "21:47"
