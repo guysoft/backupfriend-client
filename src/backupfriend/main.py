@@ -435,12 +435,12 @@ class Backup:
         self.pid = None
         if debug:
             print("Starting: " + str(self.name))
-        self.id = self.get_id()
-        self.log_file = os.path.join(self.get_run_folder(), str(self.id))
+        self.log_file = os.path.join(self.get_run_folder(), str(self.get_id()))
         return
 
     def __post_init__(self):
-        self.prepare_job()
+        self.process_object = None
+        self.pid = None
         if self.every == "daily":
             # schedule.every().seconds.do(
             #     lambda: self.run_backup())
@@ -454,7 +454,7 @@ class Backup:
         if not ensure_dir(run_folder):
             return 0
 
-        log_files = os.listdir(run_folder)
+        log_files = sorted(os.listdir(run_folder))
         for i, folder in enumerate(log_files):
             if str(i) != str(folder):
                 return str(i)
@@ -483,6 +483,7 @@ class Backup:
         return self.process_object is not None and ( not self.process_object.terminated)
 
     def run_backup(self):
+        self.prepare_job()
         if debug:
             print("hello!!!!!!!!!!!!!!")
         config = get_config()
@@ -576,6 +577,7 @@ class MainInvisibleWindow(wx.Frame):
                             sync_job.update_log(text)
 
                         sync_job.process_object = None
+                        sync_job.prepare_job()
                     else:
                         try:
                             stream = sync_job.process_object.GetInputStream()
