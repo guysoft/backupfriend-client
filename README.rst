@@ -21,8 +21,7 @@ Build and develop
 
 3. Run: ::
 
-    cd src
-    python3 ./backupfriend-client.py
+    python3 src/backupfriend-client.py
 
 
 Windows note:
