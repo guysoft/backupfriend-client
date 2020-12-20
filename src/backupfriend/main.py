@@ -377,6 +377,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         icon = wx.Icon(path)
         self.SetIcon(icon, TRAY_TOOLTIP)
 
+
+
     def on_left_down(self, event):
         print('Tray icon was left-clicked.')
 
@@ -466,6 +468,8 @@ class Backup:
         """ Returns the list of log files sorted by id
         """
         run_folder = self.get_run_folder()
+        if not os.path.isdir(run_folder):
+            return []
         return sorted(os.listdir(run_folder), key=lambda x: float(x))
 
     def update_log(self, text):
