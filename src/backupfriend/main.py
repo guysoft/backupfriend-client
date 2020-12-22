@@ -377,8 +377,6 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         icon = wx.Icon(path)
         self.SetIcon(icon, TRAY_TOOLTIP)
 
-
-
     def on_left_down(self, event):
         print('Tray icon was left-clicked.')
 
