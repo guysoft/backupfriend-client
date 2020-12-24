@@ -454,16 +454,21 @@ class Backup:
         if not ensure_dir(run_folder):
             return 0
 
-        log_files = sorted(os.listdir(run_folder))
+        log_files = self.get_log_files()
         for i, folder in enumerate(log_files):
+            # print(i, folder)
             if str(i) != str(folder):
                 return str(i)
 
         return len(log_files)
 
     def get_log_files(self):
+        """ Returns the list of log files sorted by id
+        """
         run_folder = self.get_run_folder()
-        return os.listdir(run_folder)
+        if not os.path.isdir(run_folder):
+            return []
+        return sorted(os.listdir(run_folder), key=lambda x: float(x))
 
     def update_log(self, text):
         with open(self.log_file, "ab") as log:
@@ -491,31 +496,35 @@ class Backup:
         self.process_object = SyncProcess(self.window)
         self.process_object.Redirect()
         bin_path = config["main"]["bin"]
+        ssh_path = config["main"]["ssh"]
+
         if "win" in sys.platform:
             if debug:
                 print("windows detected, adjusting binary path in package")
-                bin_path = bin_path.replace("__package_path__", resource_path())
-
-        if "win" in sys.platform:
+            
             # rdiff_path = r'"C:\Users\user\Desktop\backupfriend-client\src\rdiff-backup.exe"'
-            # ssh_path = r'C:\Users\user\Desktop\backupfriend-client\ssh.exe'
-            ssh_path = config["main"]["ssh"]
-            rdiff_path = config["main"]["bin"]
-            cmd = [rdiff_path, "-v6", "--remote-schema",
-                   '"' + ssh_path + " -p 8022 -i " + self.key + " %s rdiff-backup --server" + '"', "--", self.source,
+            # ssh_path = r'C:\Users\user\Desktop\backupfriend-client\ssh.exe'            
+            ssh_path = ssh_path.replace("__package_path__", resource_path())
+            bin_path = bin_path.replace("__package_path__", resource_path())
+            
+            cmd = [bin_path, "-v6", "--remote-schema",
+                   '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", self.source,
                    self.dest]
             command = " ".join(cmd)
-            # command = "whoami"
+            known_hosts_location = os.path.realpath(os.path.join(os.path.dirname(ssh_path), "..", "home", os.getlogin()))
+            ensure_dir(known_hosts_location)
+
         else:
             cmd = [bin_path,
                    "-v6",
-                   " --remote-schema 'ssh -p " + str(self.port) + " -i " + self.key + " %s rdiff-backup --server'",
+                   " --remote-schema 'ssh -p " + str(self.port) + " -o StrictHostKeyChecking=no -i " + self.key + " %s rdiff-backup --server'",
                    "--", self.source, self.dest]
             command = " ".join(cmd)
 
         if debug:
             print("running: " + command)
         print("running: " + str(command))
+        
         self.pid = wx.Execute(command, wx.EXEC_ASYNC, callback=self.process_object)
 
         if debug:
@@ -577,7 +586,6 @@ class MainInvisibleWindow(wx.Frame):
                             sync_job.update_log(text)
 
                         sync_job.process_object = None
-                        sync_job.prepare_job()
                     else:
                         try:
                             stream = sync_job.process_object.GetInputStream()
