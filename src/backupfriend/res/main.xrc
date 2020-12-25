@@ -395,13 +395,11 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxSpinCtrlDouble" name="m_spinCtrlDouble1">
+						<object class="wxSpinCtrl" name="m_port">
 							<style>wxSP_ARROW_KEYS</style>
-							<value>26.000000</value>
+							<value>22</value>
 							<min>0</min>
 							<max>65535</max>
-							<inc>1</inc>
-							<digits>0</digits>
 						</object>
 					</object>
 					<object class="sizeritem">
@@ -455,7 +453,7 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
-						<object class="wxTimePickerCtrl" name="m_timePicker1">
+						<object class="wxTimePickerCtrl" name="m_time">
 							<style>wxTP_DEFAULT</style>
 						</object>
 					</object>
