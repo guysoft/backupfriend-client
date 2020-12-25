@@ -247,24 +247,14 @@ class MainFrame(wx.Frame):
         self.m_list_runs = xrc.XRCCTRL(self.panel, 'm_list_runs')
         self.m_list_runs.data_keys = ["id", "Time Ran"]
 
-        for j, key in enumerate(self.m_list_runs.data_keys):
-            self.m_list_runs.InsertColumn(j, key)
+        for i, key in enumerate(self.m_list_runs.data_keys):
+            self.m_list_runs.InsertColumn(i, key)
 
-        first_run = True
-        for i, job in enumerate(list(self.GetParent().sync_jobs)):
-            if first_run:
-                first_run = False
-                # job.__dict__.keys()
-                for j, key in enumerate(self.m_list_syncs.data_keys):
-                    self.m_list_syncs.InsertColumn(j, key)
+        for i, key in enumerate(self.m_list_syncs.data_keys):
+            self.m_list_syncs.InsertColumn(i, key)
 
-            # add to m_list_syncs
-            # print(type(job))
-
-            self.m_list_syncs.InsertItem(i, job.name)
-            for j, key in enumerate(self.m_list_syncs.data_keys):
-                self.m_list_syncs.SetItem(i, j, job.__dict__[key])
-        self.m_list_syncs.resizeLastColumn(0)
+        sync_jobs_list = list(self.GetParent().sync_jobs)
+        self.add_jobs_to_list_sync(sync_jobs_list)
 
         # print(wx.geta.sync_jobs)
 
@@ -324,6 +314,16 @@ class MainFrame(wx.Frame):
 
         self.m_console.SetValue(log)
         return
+
+    def add_jobs_to_list_sync(self, jobs_list):
+        items_num = self.m_list_syncs.GetItemCount();
+
+        for i, job in zip(range(items_num, items_num + len(jobs_list)), jobs_list):
+            self.m_list_syncs.InsertItem(i, job.name)
+            for j, key in enumerate(self.m_list_syncs.data_keys):
+                self.m_list_syncs.SetItem(i, j, job.__dict__[key])
+
+        self.m_list_syncs.resizeLastColumn(0)
 
     def exit(self, event):
         wx.Exit()
