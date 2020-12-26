@@ -253,8 +253,7 @@ class MainFrame(wx.Frame):
         for i, key in enumerate(self.m_list_syncs.data_keys):
             self.m_list_syncs.InsertColumn(i, key)
 
-        sync_jobs_list = list(self.GetParent().sync_jobs)
-        self.add_jobs_to_list_sync(sync_jobs_list)
+        self.update_list_sync()
 
         # print(wx.geta.sync_jobs)
 
@@ -315,16 +314,21 @@ class MainFrame(wx.Frame):
         self.m_console.SetValue(log)
         return
 
-    def add_jobs_to_list_sync(self, jobs_list):
+    def update_list_sync(self):
         items_num = self.m_list_syncs.GetItemCount();
+        sync_jobs_list = list(self.GetParent().sync_jobs)
+        list_syncs_names = [self.m_list_syncs.GetItem(i, 0).GetText for i in range(items_num)]
 
-        for i, job in zip(range(items_num, items_num + len(jobs_list)), jobs_list):
+        new_jobs = filter(lambda job: job.name not in list_syncs_names,
+            sync_jobs_list)
+
+        for i, job in enumerate(new_jobs, items_num):
             self.m_list_syncs.InsertItem(i, job.name)
             for j, key in enumerate(self.m_list_syncs.data_keys):
                 self.m_list_syncs.SetItem(i, j, job.__dict__[key])
-        self.m_list_syncs.resizeLastColumn(0)
 
-        self.GetParent().add_backups([job.__dict__ for job in jobs_list])
+        if new_jobs:
+            self.m_list_syncs.resizeLastColumn(0)
 
     def exit(self, event):
         wx.Exit()
@@ -555,29 +559,21 @@ class MainInvisibleWindow(wx.Frame):
         wx.Frame.__init__(self, parent=None)
 
         self.sync_jobs = []
-        self.add_backups(config["backups"])
+        self.add_backups(config["backups"], False)
         # self.Bind(wx.EVT_IDLE, self.OnIdle)
 
         self.on_timer()
 
-    def add_backups(self, backups_list):
-        self._add_backups_to_config(backups_list)
-
-        sync_jobs_names = [job.name for job in self.sync_jobs]
-        new_jobs = [job for job in backups_list if job["name"] not in sync_jobs_names]
-
-        for backup in new_jobs:
+    def add_backups(self, backups_list, from_config=True):
+        for backup in backups_list:
+            if from_config:
+                config["backups"].append(backup)
             backup_class = Backup(**backup, window=self)
             self.sync_jobs.append(backup_class)
 
-    def _add_backups_to_config(self, backups_list):
-        configs_backups_names = [backup["name"] for backup in config["backups"]]
-        new_configs = [b for b in backups_list if b["name"] not in configs_backups_names]
-
-        if(new_configs):
-            config["backups"] += new_configs
-            with open(CONFIG_PATH, 'w') as f:
-                yaml.safe_dump(config, f)
+        if not from_config:
+             with open(CONFIG_PATH, 'w') as f:
+                 yaml.safe_dump(config, f)
 
     def on_timer(self):
         # wx.CallLater(1000 * 60, self.on_timer)
