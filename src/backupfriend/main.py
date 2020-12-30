@@ -14,9 +14,12 @@ from collections.abc import Iterable
 import wx.lib.inspection
 import shutil
 import shlex
+from pubsub import pub
+
 
 TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
 TRAY_TOOLTIP = 'BackupFriend'
+CFG_UPDATE_MSG = "config_update"
 
 # TODO:
 # 1. Make settings window
@@ -30,7 +33,6 @@ if "win" in sys.platform:
 else:
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config.yml")
 CONFIG_PATH = os.path.join(DATA_PATH, "config", "config.yml")
-
 
 def get_config():
     if not os.path.isfile(CONFIG_PATH):
@@ -254,6 +256,7 @@ class MainFrame(wx.Frame):
             self.m_list_syncs.InsertColumn(i, key)
 
         self.update_list_sync()
+        pub.subscribe(self.update_list_sync, CFG_UPDATE_MSG)
 
         # print(wx.geta.sync_jobs)
 
@@ -317,7 +320,7 @@ class MainFrame(wx.Frame):
     def update_list_sync(self):
         items_num = self.m_list_syncs.GetItemCount();
         sync_jobs_list = list(self.GetParent().sync_jobs)
-        list_syncs_names = [self.m_list_syncs.GetItem(i, 0).GetText for i in range(items_num)]
+        list_syncs_names = [self.m_list_syncs.GetItem(i, 0).GetText() for i in range(items_num)]
 
         new_jobs = filter(lambda job: job.name not in list_syncs_names,
             sync_jobs_list)
@@ -559,21 +562,23 @@ class MainInvisibleWindow(wx.Frame):
         wx.Frame.__init__(self, parent=None)
 
         self.sync_jobs = []
-        self.add_backups(config["backups"], False)
+        self.add_backups(config["backups"], True)
         # self.Bind(wx.EVT_IDLE, self.OnIdle)
 
         self.on_timer()
 
-    def add_backups(self, backups_list, from_config=True):
+    def add_backups(self, backups_list, in_config=False):
         for backup in backups_list:
-            if from_config:
+            if not in_config:
                 config["backups"].append(backup)
             backup_class = Backup(**backup, window=self)
             self.sync_jobs.append(backup_class)
 
-        if not from_config:
+        if not in_config:
              with open(CONFIG_PATH, 'w') as f:
                  yaml.safe_dump(config, f)
+
+        pub.sendMessage(CFG_UPDATE_MSG)
 
     def on_timer(self):
         # wx.CallLater(1000 * 60, self.on_timer)

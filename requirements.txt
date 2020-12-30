@@ -3,3 +3,4 @@ PyYAML
 schedule
 appdirs
 cryptography
+pypubsub
