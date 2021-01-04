@@ -1,11 +1,10 @@
 BackupFriend Client
 ===================
 
-BackupFriend is a tool that lets you place a RaspberryPi in your friends house or family, or a server. And lets you sync your folders tracking history changes.
+BackupFriend is a tool that lets you place a RaspberryPi with a hard drive in your friends house or family, or a server. And lets you sync your folders tracking history changes.
 It uses a backend located here: https://github.com/guysoft/BackupFriend-docker . And a RaspsberryPi distro that holds this backend here: https://github.com/guysoft/BackupFriendPi
 
 This repository is the graphical Desktop application.
-
 
 Requiremnets:
  - SSH
