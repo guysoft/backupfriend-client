@@ -109,25 +109,27 @@ class JobDialog(wx.Dialog):
 
     def save(self, event):
         errors = []
-        m_name = xrc.XRCCTRL(self, 'm_name')
-        m_source = xrc.XRCCTRL(self, 'm_source')
-        m_dest = xrc.XRCCTRL(self, 'm_dest')
-        m_port = xrc.XRCCTRL(self, 'm_port')
-        m_key = xrc.XRCCTRL(self, 'm_key_picker')
-        m_repeat = "daily"
-        m_time = xrc.XRCCTRL(self, 'm_time')
+        backup_dict = {
+            "name": xrc.XRCCTRL(self, 'm_name').GetValue(),
+            "source": xrc.XRCCTRL(self, 'm_source').GetPath(),
+            "dest": xrc.XRCCTRL(self, 'm_dest').GetValue(),
+            "port": xrc.XRCCTRL(self, 'm_port').GetValue(),
+            "key": xrc.XRCCTRL(self, 'm_key_picker').GetPath(),
+            "every": "daily",
+            "time": self._time2str(xrc.XRCCTRL(self, 'm_time').GetTime())
+        }
 
         # Sanity_check
-        if m_name.GetValue() == "":
+        if backup_dict["name"] == "":
             errors.append("Name can't be empty")
-        if m_source.GetPath() == "":
+        if backup_dict["source"] == "":
             errors.append("Source can't be empty")
-        if m_dest.GetValue() == "":
+        if backup_dict["dest"] == "":
             errors.append("Destination can't be empty")
 
-        if m_key.GetPath() == "":
+        if backup_dict["key"] == "":
             errors.append("SSH key can't be empty")
-        elif not os.path.isfile(m_key.GetPath()):
+        elif not os.path.isfile(backup_dict["key"]):
             errors.append("SSH key path does not exist")
 
         m_info = xrc.XRCCTRL(self, 'm_info')
@@ -138,9 +140,11 @@ class JobDialog(wx.Dialog):
             m_info.SetForegroundColour((0, 0, 0))
             m_info.SetLabel("Implement saving, and sanity test")
 
-        # TODO: Implement saving a new job
+        self.GetParent().GetParent().add_backups([backup_dict])
+        self.Close()
 
-        # Backup()
-        # self.Close()
-
-
+    def _time2str(self, time):
+        time_str = map(str, time[:2])
+        time_str = map(lambda st: st if len(st) >1 else "0" + st, time_str)
+        time_str = ':'.join(time_str)
+        return time_str
