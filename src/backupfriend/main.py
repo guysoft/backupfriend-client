@@ -226,11 +226,13 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.open_settings, id=xrc.XRCID('m_settings'))
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_backup, id=xrc.XRCID('m_list_syncs'))
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.deselect_backup, id=xrc.XRCID('m_list_syncs'))
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_run, id=xrc.XRCID('m_list_runs'))
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         # Buttons
+        self.m_edit_btn = xrc.XRCCTRL(self.panel, "m_edit")
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
         self.Bind(wx.EVT_BUTTON, self.run_job, id=xrc.XRCID('m_run'))
 
@@ -276,7 +278,12 @@ class MainFrame(wx.Frame):
         self.display_job(job_name)
         m_run = xrc.XRCCTRL(self.panel, 'm_run')
         m_run.Enable()
+        self.m_edit_btn.Enable()
+
         return
+
+    def deselect_backup(self, event):
+        self.m_edit_btn.Disable()
 
     def run_job(self, event):
         if debug:
