@@ -232,9 +232,12 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         # Buttons
+        self.m_run_btn = xrc.XRCCTRL(self.panel, "m_run")
         self.m_edit_btn = xrc.XRCCTRL(self.panel, "m_edit")
+        self.m_delete_btn = xrc.XRCCTRL(self.panel, "m_delete")
+
+        self.Bind(wx.EVT_BUTTON, self.run_job, self.m_run_btn)
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
-        self.Bind(wx.EVT_BUTTON, self.run_job, id=xrc.XRCID('m_run'))
 
         self.Centre()
         self.Show()
@@ -276,14 +279,17 @@ class MainFrame(wx.Frame):
         if debug:
             print("Selected: " + job_name)
         self.display_job(job_name)
-        m_run = xrc.XRCCTRL(self.panel, 'm_run')
-        m_run.Enable()
+
+        self.m_run_btn.Enable()
         self.m_edit_btn.Enable()
+        self.m_delete_btn.Enable()
 
         return
 
     def deselect_backup(self, event):
+        self.m_run_btn.Disable()
         self.m_edit_btn.Disable()
+        self.m_delete_btn.Disable()
 
     def run_job(self, event):
         if debug:
