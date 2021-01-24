@@ -378,8 +378,8 @@
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<object class="wxTextCtrl" name="m_dest">
-							<tooltip>user@hostname.com::/folder</tooltip>
-							<value>user@hostname.com::/folder</value>
+							<tooltip>Location for backing up your files</tooltip>
+							<value>user@backupfriend.local::/backup</value>
 						</object>
 					</object>
 					<object class="sizeritem">
@@ -397,7 +397,7 @@
 						<border>5</border>
 						<object class="wxSpinCtrl" name="m_port">
 							<style>wxSP_ARROW_KEYS</style>
-							<value>22</value>
+							<value>8022</value>
 							<min>0</min>
 							<max>65535</max>
 						</object>
