@@ -42,9 +42,16 @@ def get_config():
         return yaml.load(f, Loader=yaml.FullLoader)
     return
 
+def save_config():
+    with open(CONFIG_PATH, 'w') as f:
+        yaml.safe_dump(config, f)
 
 config = get_config()
 
+if "ssh" not in config["main"] and "win" not in sys.platform:
+    ssh = subprocess.run(['which', 'ssh'], capture_output=True, text=True).stdout.strip()
+    config["main"]["ssh"] = ssh
+    save_config()
 
 def _run_command(command, **kwargs):
     if debug:
@@ -575,8 +582,7 @@ class MainInvisibleWindow(wx.Frame):
             self.sync_jobs.append(backup_class)
 
         if not in_config:
-             with open(CONFIG_PATH, 'w') as f:
-                 yaml.safe_dump(config, f)
+            save_config()
 
         pub.sendMessage(CFG_UPDATE_MSG)
 
