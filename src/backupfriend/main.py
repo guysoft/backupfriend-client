@@ -48,7 +48,7 @@ def save_config():
 
 config = get_config()
 
-if "ssh" not in config["main"]:
+if "ssh" not in config["main"] and "win" not in sys.platform:
     ssh = subprocess.run(['which', 'ssh'], capture_output=True, text=True).stdout.strip()
     config["main"]["ssh"] = ssh
     save_config()
