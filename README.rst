@@ -9,6 +9,14 @@ This repository is the graphical Desktop application.
 Requiremnets:
  - SSH
  -  rdiff-backup
+ 
+ 
+Screenshots
+===========
+
+.. image:: https://raw.githubusercontent.com/guysoft/backupfriend-client/master/media/backfriend-client-screenshot.png
+.. :scale: 25https://raw.githubusercontent.com/guysoft/backupfriend-client/master/media/backfriend-client-screenshot.png %
+.. :alt: Main window
 
 Build and develop
 =================

@@ -2341,12 +2341,12 @@
                                 <property name="style"></property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
-                                <property name="tooltip">user@hostname.com::/folder</property>
+                                <property name="tooltip">Location for backing up your files</property>
                                 <property name="validator_data_type"></property>
                                 <property name="validator_style">wxFILTER_NONE</property>
                                 <property name="validator_type">wxDefaultValidator</property>
                                 <property name="validator_variable"></property>
-                                <property name="value">user@hostname.com::/folder</property>
+                                <property name="value">user@backupfriend.local::/backup</property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
@@ -2445,7 +2445,7 @@
                                 <property name="gripper">0</property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="initial">22</property>
+                                <property name="initial">8022</property>
                                 <property name="max">65535</property>
                                 <property name="max_size"></property>
                                 <property name="maximize_button">0</property>
