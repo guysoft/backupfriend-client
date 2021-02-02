@@ -600,14 +600,15 @@ class MainInvisibleWindow(wx.Frame):
         pub.sendMessage(CFG_UPDATE_MSG)
 
     def delete_backup(self, backup_name):
-        print(f"delete backup: {backup_name}")
-
         print(config)
-        del_index = next(i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
-        config["backups"].pop(del_index)
+        try:
+            del_index = next(i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+            config["backups"].pop(del_index)
 
-        del_index = next(i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
-        self.sync_jobs.pop(del_index)
+            del_index = next(i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+            self.sync_jobs.pop(del_index)
+        except StopIteration:
+            print(f"Error: no backup named {backup_name}")
 
         with open(CONFIG_PATH, 'w') as f:
             yaml.dump(config, f)
