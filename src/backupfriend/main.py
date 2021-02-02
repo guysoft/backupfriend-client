@@ -237,6 +237,7 @@ class MainFrame(wx.Frame):
         self.m_delete_btn = xrc.XRCCTRL(self.panel, "m_delete")
 
         self.Bind(wx.EVT_BUTTON, self.run_job, self.m_run_btn)
+        self.Bind(wx.EVT_BUTTON, self.delete_job, self.m_delete_btn)
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
 
         self.Centre()
@@ -276,8 +277,6 @@ class MainFrame(wx.Frame):
         item = event.GetItem()
         job_name = item.GetText()
         self.current_job = job_name
-        if debug:
-            print("Selected: " + job_name)
         self.display_job(job_name)
 
         self.m_run_btn.Enable()
@@ -287,6 +286,8 @@ class MainFrame(wx.Frame):
         return
 
     def deselect_backup(self, event):
+        self.current_job = None
+
         self.m_run_btn.Disable()
         self.m_edit_btn.Disable()
         self.m_delete_btn.Disable()
@@ -300,6 +301,9 @@ class MainFrame(wx.Frame):
         else:
             print("Job already running")
 
+    def delete_job(self, event):
+        print(f"delete job: {self.current_job}")
+        self.GetParent().delete_backup(self.current_job)
 
 
     def start_first_time_wizard(self, event=None):
@@ -340,18 +344,14 @@ class MainFrame(wx.Frame):
     def update_list_sync(self):
         items_num = self.m_list_syncs.GetItemCount();
         sync_jobs_list = list(self.GetParent().sync_jobs)
-        list_syncs_names = [self.m_list_syncs.GetItem(i, 0).GetText() for i in range(items_num)]
+        self.m_list_syncs.DeleteAllItems()
 
-        new_jobs = filter(lambda job: job.name not in list_syncs_names,
-            sync_jobs_list)
-
-        for i, job in enumerate(new_jobs, items_num):
+        for i, job in enumerate(sync_jobs_list):
             self.m_list_syncs.InsertItem(i, job.name)
             for j, key in enumerate(self.m_list_syncs.data_keys):
                 self.m_list_syncs.SetItem(i, j, job.__dict__[key])
 
-        if new_jobs:
-            self.m_list_syncs.resizeLastColumn(0)
+        self.m_list_syncs.resizeLastColumn(0)
 
     def exit(self, event):
         wx.Exit()
@@ -596,6 +596,21 @@ class MainInvisibleWindow(wx.Frame):
 
         if not in_config:
             save_config()
+
+        pub.sendMessage(CFG_UPDATE_MSG)
+
+    def delete_backup(self, backup_name):
+        print(f"delete backup: {backup_name}")
+
+        print(config)
+        del_index = next(i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+        config["backups"].pop(del_index)
+
+        del_index = next(i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+        self.sync_jobs.pop(del_index)
+
+        with open(CONFIG_PATH, 'w') as f:
+            yaml.dump(config, f)
 
         pub.sendMessage(CFG_UPDATE_MSG)
 
