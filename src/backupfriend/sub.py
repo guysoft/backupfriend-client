@@ -148,3 +148,22 @@ class JobDialog(wx.Dialog):
         time_str = map(lambda st: st if len(st) >1 else "0" + st, time_str)
         time_str = ':'.join(time_str)
         return time_str
+
+
+class DeleteJobDialog(wx.Dialog):
+    def __init__(self, *args, **kw):
+        wx.Dialog.__init__(self, *args, **kw)
+        self.Bind(wx.EVT_BUTTON, self._close, id=xrc.XRCID('m_delete_btn_no'))
+        self.Bind(wx.EVT_BUTTON, self._delete_job, id=xrc.XRCID('m_delete_btn_yes'))
+
+    def ShowModal(self, *args, **kw):
+        self.job_name = kw.pop('job_name')
+
+        return wx.Dialog.ShowModal(self, *args, **kw)
+
+    def _delete_job(self, event):
+        self.GetParent().GetParent().delete_backup(self.job_name)
+        self.Close()
+
+    def _close(self, event):
+        self.Close()

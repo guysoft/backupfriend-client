@@ -280,7 +280,7 @@ class MainFrame(wx.Frame):
         self.display_job(job_name)
 
         self.m_run_btn.Enable()
-        self.m_edit_btn.Enable()
+        # self.m_edit_btn.Enable()
         self.m_delete_btn.Enable()
 
         return
@@ -289,7 +289,7 @@ class MainFrame(wx.Frame):
         self.current_job = None
 
         self.m_run_btn.Disable()
-        self.m_edit_btn.Disable()
+        # self.m_edit_btn.Disable()
         self.m_delete_btn.Disable()
 
     def run_job(self, event):
@@ -302,8 +302,11 @@ class MainFrame(wx.Frame):
             print("Job already running")
 
     def delete_job(self, event):
-        print(f"delete job: {self.current_job}")
-        self.GetParent().delete_backup(self.current_job)
+        dialog = self.res.LoadDialog(self, 'delete_job_dialog')
+        dialog.ShowModal(job_name=self.current_job)
+        self.current_job = None
+
+        return
 
 
     def start_first_time_wizard(self, event=None):
@@ -600,7 +603,6 @@ class MainInvisibleWindow(wx.Frame):
         pub.sendMessage(CFG_UPDATE_MSG)
 
     def delete_backup(self, backup_name):
-        print(config)
         try:
             del_index = next(i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
             config["backups"].pop(del_index)
