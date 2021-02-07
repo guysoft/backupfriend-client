@@ -591,7 +591,19 @@ class MainInvisibleWindow(wx.Frame):
         self.on_timer()
 
     def add_backups(self, backups_list, in_config=False):
+        jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
+
         for backup in backups_list:
+            # Sanity_check
+            if backup["name"] in jobs_names:
+                raise ValueError(f"'{backup['name']}' is alredy exist")
+            if backup["name"] == "":
+                raise ValueError("Name can't be empty")
+            if backup["source"] == "":
+                raise ValueError("Source can't be empty")
+            if backup["dest"] == "":
+                raise ValueError("Destination can't be empty")
+
             if not in_config:
                 config["backups"].append(backup)
             backup_class = Backup(**backup, window=self)
