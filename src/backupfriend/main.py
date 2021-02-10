@@ -226,13 +226,19 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.open_settings, id=xrc.XRCID('m_settings'))
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_backup, id=xrc.XRCID('m_list_syncs'))
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.deselect_backup, id=xrc.XRCID('m_list_syncs'))
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_run, id=xrc.XRCID('m_list_runs'))
 
         self.Bind(wx.EVT_CLOSE, self.onClose)
 
         # Buttons
+        self.m_run_btn = xrc.XRCCTRL(self.panel, "m_run")
+        self.m_edit_btn = xrc.XRCCTRL(self.panel, "m_edit")
+        self.m_delete_btn = xrc.XRCCTRL(self.panel, "m_delete")
+
+        self.Bind(wx.EVT_BUTTON, self.run_job, self.m_run_btn)
+        self.Bind(wx.EVT_BUTTON, self.delete_job, self.m_delete_btn)
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
-        self.Bind(wx.EVT_BUTTON, self.run_job, id=xrc.XRCID('m_run'))
 
         self.Centre()
         self.Show()
@@ -271,12 +277,20 @@ class MainFrame(wx.Frame):
         item = event.GetItem()
         job_name = item.GetText()
         self.current_job = job_name
-        if debug:
-            print("Selected: " + job_name)
         self.display_job(job_name)
-        m_run = xrc.XRCCTRL(self.panel, 'm_run')
-        m_run.Enable()
+
+        self.m_run_btn.Enable()
+        # self.m_edit_btn.Enable()
+        self.m_delete_btn.Enable()
+
         return
+
+    def deselect_backup(self, event):
+        self.current_job = None
+
+        self.m_run_btn.Disable()
+        # self.m_edit_btn.Disable()
+        self.m_delete_btn.Disable()
 
     def run_job(self, event):
         if debug:
@@ -287,6 +301,12 @@ class MainFrame(wx.Frame):
         else:
             print("Job already running")
 
+    def delete_job(self, event):
+        dialog = self.res.LoadDialog(self, 'delete_job_dialog')
+        dialog.ShowModal(job_name=self.current_job)
+        self.current_job = None
+
+        return
 
 
     def start_first_time_wizard(self, event=None):
@@ -327,18 +347,14 @@ class MainFrame(wx.Frame):
     def update_list_sync(self):
         items_num = self.m_list_syncs.GetItemCount();
         sync_jobs_list = list(self.GetParent().sync_jobs)
-        list_syncs_names = [self.m_list_syncs.GetItem(i, 0).GetText() for i in range(items_num)]
+        self.m_list_syncs.DeleteAllItems()
 
-        new_jobs = filter(lambda job: job.name not in list_syncs_names,
-            sync_jobs_list)
-
-        for i, job in enumerate(new_jobs, items_num):
+        for i, job in enumerate(sync_jobs_list):
             self.m_list_syncs.InsertItem(i, job.name)
             for j, key in enumerate(self.m_list_syncs.data_keys):
                 self.m_list_syncs.SetItem(i, j, job.__dict__[key])
 
-        if new_jobs:
-            self.m_list_syncs.resizeLastColumn(0)
+        self.m_list_syncs.resizeLastColumn(0)
 
     def exit(self, event):
         wx.Exit()
@@ -575,7 +591,19 @@ class MainInvisibleWindow(wx.Frame):
         self.on_timer()
 
     def add_backups(self, backups_list, in_config=False):
+        jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
+
         for backup in backups_list:
+            # Sanity_check
+            if backup["name"] in jobs_names:
+                raise ValueError(f"'{backup['name']}' is alredy exist")
+            if backup["name"] == "":
+                raise ValueError("Name can't be empty")
+            if backup["source"] == "":
+                raise ValueError("Source can't be empty")
+            if backup["dest"] == "":
+                raise ValueError("Destination can't be empty")
+
             if not in_config:
                 config["backups"].append(backup)
             backup_class = Backup(**backup, window=self)
@@ -583,6 +611,21 @@ class MainInvisibleWindow(wx.Frame):
 
         if not in_config:
             save_config()
+
+        pub.sendMessage(CFG_UPDATE_MSG)
+
+    def delete_backup(self, backup_name):
+        try:
+            del_index = next(i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+            config["backups"].pop(del_index)
+
+            del_index = next(i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+            self.sync_jobs.pop(del_index)
+        except StopIteration:
+            print(f"Error: no backup named {backup_name}")
+
+        with open(CONFIG_PATH, 'w') as f:
+            yaml.dump(config, f)
 
         pub.sendMessage(CFG_UPDATE_MSG)
 
