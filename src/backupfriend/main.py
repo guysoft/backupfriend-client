@@ -238,6 +238,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_BUTTON, self.run_job, self.m_run_btn)
         self.Bind(wx.EVT_BUTTON, self.delete_job, self.m_delete_btn)
+        self.Bind(wx.EVT_BUTTON, self.show_edit_dialog, self.m_edit_btn)
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
 
         self.Centre()
@@ -280,7 +281,7 @@ class MainFrame(wx.Frame):
         self.display_job(job_name)
 
         self.m_run_btn.Enable()
-        # self.m_edit_btn.Enable()
+        self.m_edit_btn.Enable()
         self.m_delete_btn.Enable()
 
         return
@@ -289,7 +290,7 @@ class MainFrame(wx.Frame):
         self.current_job = None
 
         self.m_run_btn.Disable()
-        # self.m_edit_btn.Disable()
+        self.m_edit_btn.Disable()
         self.m_delete_btn.Disable()
 
     def run_job(self, event):
@@ -362,6 +363,11 @@ class MainFrame(wx.Frame):
 
     def show_public_key(self, event):
         dialog = self.res.LoadDialog(self, 'show_key_dialog')
+        dialog.ShowModal()
+        return
+
+    def show_edit_dialog(self, event):
+        dialog = self.res.LoadDialog(self, 'job_dialog')
         dialog.ShowModal()
         return
 
