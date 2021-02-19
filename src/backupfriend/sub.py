@@ -108,7 +108,6 @@ class JobDialog(wx.Dialog):
         self.Close()
 
     def save(self, event):
-        errors = []
         backup_dict = {
             "name": xrc.XRCCTRL(self, 'm_name').GetValue(),
             "source": xrc.XRCCTRL(self, 'm_source').GetPath(),

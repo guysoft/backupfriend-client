@@ -367,8 +367,7 @@ class MainFrame(wx.Frame):
         return
 
     def show_edit_dialog(self, event):
-        dialog = self.res.LoadDialog(self, 'job_dialog')
-        dialog.ShowModal()
+        pass
         return
 
     def show_create_dialog(self, event):
@@ -631,6 +630,22 @@ class MainInvisibleWindow(wx.Frame):
             self.sync_jobs.pop(del_index)
         except StopIteration:
             print(f"Error: no backup named {backup_name}")
+
+        with open(CONFIG_PATH, 'w') as f:
+            yaml.dump(config, f)
+
+        pub.sendMessage(CFG_UPDATE_MSG)
+
+    def update_backup(self, backup_name, edit_dict):
+        config_index = next(
+            i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+
+        jobs_index = next(
+            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+
+        for key, val in edit_dict.items():
+            config["backups"][config_index][key] = val
+            self.sync_jobs[jobs_index].__dict__[key] = val
 
         with open(CONFIG_PATH, 'w') as f:
             yaml.dump(config, f)
