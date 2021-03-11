@@ -367,7 +367,8 @@ class MainFrame(wx.Frame):
         return
 
     def show_edit_dialog(self, event):
-        pass
+        dialog = self.res.LoadDialog(self, 'edit_job_dialog')
+        dialog.ShowModal()
         return
 
     def show_create_dialog(self, event):

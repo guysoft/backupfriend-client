@@ -92,7 +92,7 @@ class JobDialog(wx.Dialog):
         wx.Dialog.__init__(self, *args, **kw)
         self.Bind(wx.EVT_BUTTON, self.close, id=xrc.XRCID('m_cancel'))
         self.Bind(wx.EVT_BUTTON, self.save, id=xrc.XRCID('m_save'))
-        # self.Bind(wx.EVT_INIT_DIALOG, self.on_init_dialog)
+
         return
 
     def ShowModal(self, *args, **kw):
@@ -124,7 +124,7 @@ class JobDialog(wx.Dialog):
             elif not os.path.isfile(backup_dict["key"]):
                 raise ValueError("SSH key path does not exist")
 
-            self.GetParent().GetParent().add_backups([backup_dict])
+            self.updateFunction(backup_dict)
             self.Close()
         except ValueError as e:
             wx.MessageBox(str(e), 'Error', wx.OK | wx.ICON_EXCLAMATION)
@@ -134,6 +134,9 @@ class JobDialog(wx.Dialog):
         time_str = map(lambda st: st if len(st) >1 else "0" + st, time_str)
         time_str = ':'.join(time_str)
         return time_str
+
+    def updateFunction(self, backup_dict):
+        self.updateFunction = self.GetParent().GetParent().add_backups([backup_dict])
 
 
 class DeleteJobDialog(wx.Dialog):
@@ -153,3 +156,7 @@ class DeleteJobDialog(wx.Dialog):
 
     def _close(self, event):
         self.Close()
+
+
+class EditJobDialog(JobDialog):
+    pass
