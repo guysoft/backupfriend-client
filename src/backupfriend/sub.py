@@ -1,11 +1,11 @@
 import wx
-from wx.adv import Wizard, WizardPageSimple
+import os.path
+from wx.adv import Wizard
 from wx.lib.mixins import listctrl
 from wx import xrc
-import os.path
 from backupfriend.make_ssh_key import generate_keys
 from backupfriend.common import get_data_path
-from .main import Backup
+from abc import ABC, abstractmethod
 
 DATA_PATH = get_data_path()
 
@@ -136,6 +136,11 @@ class JobDialog(wx.Dialog):
         return time_str
 
     def updateFunction(self, backup_dict):
+        pass
+
+
+class AddJobDialog(JobDialog):
+    def updateFunction(self, backup_dict):
         self.updateFunction = self.GetParent().GetParent().add_backups([backup_dict])
 
 
@@ -147,6 +152,8 @@ class DeleteJobDialog(wx.Dialog):
 
     def ShowModal(self, *args, **kw):
         self.job_name = kw.pop('job_name')
+        xrc.XRCCTRL(self, "m_static_text_delete").SetLabel(
+            f"Are you sure you want to delete {self.job_name}?")
 
         return wx.Dialog.ShowModal(self, *args, **kw)
 

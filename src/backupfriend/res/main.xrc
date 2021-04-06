@@ -313,7 +313,7 @@
 			</object>
 		</object>
 	</object>
-	<object class="wxDialog" name="job_dialog" subclass="backupfriend.sub.JobDialog">
+	<object class="wxDialog" name="job_dialog" subclass="backupfriend.sub.AddJobDialog">
 		<style>wxDEFAULT_DIALOG_STYLE</style>
 		<title>Create New Backup Job</title>
 		<centered>1</centered>
@@ -739,7 +739,7 @@
 			</object>
 		</object>
 	</object>
-	<object class="wxDialog" name="delete_job_dialog">
+	<object class="wxDialog" name="delete_job_dialog" subclass="backupfriend.sub.DeleteJobDialog">
 		<style>wxDEFAULT_DIALOG_STYLE</style>
 		<size>216,186</size>
 		<title></title>
@@ -751,7 +751,7 @@
 				<flag>wxALIGN_CENTER|wxEXPAND</flag>
 				<border>5</border>
 				<object class="wxStaticText" name="m_static_text_delete">
-					<label>Text</label>
+					<label>Are you sure that you want to delete XXXXXXXXXXXXXXXXXX</label>
 					<wrap>-1</wrap>
 				</object>
 			</object>
