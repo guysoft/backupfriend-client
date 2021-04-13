@@ -119,32 +119,38 @@ class JobDialog(wx.Dialog):
             "time": self._time2str(xrc.XRCCTRL(self, 'm_time').GetTime())
         }
 
-        # Sanity_check
-        if backup_dict["name"] == "":
-            errors.append("Name can't be empty")
-        if backup_dict["source"] == "":
-            errors.append("Source can't be empty")
-        if backup_dict["dest"] == "":
-            errors.append("Destination can't be empty")
+        try:
+            if backup_dict["key"] == "":
+                raise ValueError("SSH key can't be empty")
+            elif not os.path.isfile(backup_dict["key"]):
+                raise ValueError("SSH key path does not exist")
 
-        if backup_dict["key"] == "":
-            errors.append("SSH key can't be empty")
-        elif not os.path.isfile(backup_dict["key"]):
-            errors.append("SSH key path does not exist")
-
-        m_info = xrc.XRCCTRL(self, 'm_info')
-        if len(errors) > 0:
-            m_info.SetForegroundColour((255, 0, 0))
-            m_info.SetLabel("\n".join(errors))
-        else:
-            m_info.SetForegroundColour((0, 0, 0))
-            m_info.SetLabel("Implement saving, and sanity test")
-
-        self.GetParent().GetParent().add_backups([backup_dict])
-        self.Close()
+            self.GetParent().GetParent().add_backups([backup_dict])
+            self.Close()
+        except ValueError as e:
+            wx.MessageBox(str(e), 'Error', wx.OK | wx.ICON_EXCLAMATION)
 
     def _time2str(self, time):
         time_str = map(str, time[:2])
         time_str = map(lambda st: st if len(st) >1 else "0" + st, time_str)
         time_str = ':'.join(time_str)
         return time_str
+
+
+class DeleteJobDialog(wx.Dialog):
+    def __init__(self, *args, **kw):
+        wx.Dialog.__init__(self, *args, **kw)
+        self.Bind(wx.EVT_BUTTON, self._close, id=xrc.XRCID('m_delete_btn_no'))
+        self.Bind(wx.EVT_BUTTON, self._delete_job, id=xrc.XRCID('m_delete_btn_yes'))
+
+    def ShowModal(self, *args, **kw):
+        self.job_name = kw.pop('job_name')
+
+        return wx.Dialog.ShowModal(self, *args, **kw)
+
+    def _delete_job(self, event):
+        self.GetParent().GetParent().delete_backup(self.job_name)
+        self.Close()
+
+    def _close(self, event):
+        self.Close()
