@@ -624,10 +624,12 @@ class MainInvisibleWindow(wx.Frame):
 
     def delete_backup(self, backup_name):
         try:
-            del_index = next(i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+            del_index = next(
+                i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
             config["backups"].pop(del_index)
 
-            del_index = next(i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+            del_index = next(
+                i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
             self.sync_jobs.pop(del_index)
         except StopIteration:
             print(f"Error: no backup named {backup_name}")
@@ -652,6 +654,12 @@ class MainInvisibleWindow(wx.Frame):
             yaml.dump(config, f)
 
         pub.sendMessage(CFG_UPDATE_MSG)
+
+    def get_backup_by_name(self, backup_name):
+        job_index = next(
+            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+
+        return self.sync_jobs[job_index]
 
     def on_timer(self):
         # wx.CallLater(1000 * 60, self.on_timer)

@@ -87,7 +87,7 @@ class ShowPublicKeyDialog(wx.Dialog):
         wx.Dialog.ShowModal(self, *args, **kw)
 
 
-class JobDialog(wx.Dialog):
+class AbstractJobDialog(wx.Dialog):
     def __init__(self, *args, **kw):
         wx.Dialog.__init__(self, *args, **kw)
         self.Bind(wx.EVT_BUTTON, self.close, id=xrc.XRCID('m_cancel'))
@@ -95,14 +95,6 @@ class JobDialog(wx.Dialog):
 
         return
 
-    def ShowModal(self, *args, **kw):
-        m_key = xrc.XRCCTRL(self, 'm_key_picker')
-        key_path = os.path.join(DATA_PATH, "id_rsa")
-        # m_key.SetInitialDirectory(os.path.dirname(key_path))
-        m_key.SetPath(key_path)
-        print(m_key.GetPath())
-        m_key.Refresh()
-        return wx.Dialog.ShowModal(self, *args, **kw)
 
     def close(self, event):
         self.Close()
@@ -139,9 +131,41 @@ class JobDialog(wx.Dialog):
         pass
 
 
-class AddJobDialog(JobDialog):
+class AddJobDialog(AbstractJobDialog):
+    def ShowModal(self, *args, **kw):
+        m_key = xrc.XRCCTRL(self, 'm_key_picker')
+        key_path = os.path.join(DATA_PATH, "id_rsa")
+        # m_key.SetInitialDirectory(os.path.dirname(key_path))
+        m_key.SetPath(key_path)
+        print(m_key.GetPath())
+        m_key.Refresh()
+        return wx.Dialog.ShowModal(self, *args, **kw)
+
     def updateFunction(self, backup_dict):
-        self.updateFunction = self.GetParent().GetParent().add_backups([backup_dict])
+        self.GetParent().GetParent().add_backups([backup_dict])
+
+
+class EditJobDialog(AbstractJobDialog):
+    def ShowModal(self, *args, **kw):
+        self.job_name = self.GetParent().current_job
+        self.backup_to_update = self.GetParent().GetParent().get_backup_by_name(
+            self.job_name)
+
+        xrc.XRCCTRL(self, 'm_name').SetValue(self.backup_to_update.name)
+        xrc.XRCCTRL(self, 'm_source').SetPath(self.backup_to_update.source)
+        xrc.XRCCTRL(self, 'm_dest').SetValue(self.backup_to_update.dest)
+        xrc.XRCCTRL(self, 'm_port').SetValue(self.backup_to_update.port)
+        xrc.XRCCTRL(self, 'm_key_picker').SetPath(self.backup_to_update.key)
+
+        m_time = xrc.XRCCTRL(self, 'm_time')
+        time_elems = self.backup_to_update.time.split(':')
+        time_elems = map(int, time_elems)
+        m_time.SetTime(*time_elems, 0)
+
+        return wx.Dialog.ShowModal(self, *args, **kw)
+
+    def updateFunction(self, backup_dict):
+        self.GetParent().GetParent().update_backup(self.job_name, backup_dict)
 
 
 class DeleteJobDialog(wx.Dialog):
@@ -163,7 +187,3 @@ class DeleteJobDialog(wx.Dialog):
 
     def _close(self, event):
         self.Close()
-
-
-class EditJobDialog(JobDialog):
-    pass
