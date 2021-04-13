@@ -177,7 +177,7 @@ class DeleteJobDialog(wx.Dialog):
     def ShowModal(self, *args, **kw):
         self.job_name = kw.pop('job_name')
         xrc.XRCCTRL(self, "m_static_text_delete").SetLabel(
-            f"Are you sure you want to delete {self.job_name}?")
+            f"Are you sure you want to delete '{self.job_name}'?")
 
         return wx.Dialog.ShowModal(self, *args, **kw)
 
