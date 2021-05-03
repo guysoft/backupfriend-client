@@ -410,6 +410,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
 
     def on_left_down(self, event):
         print('Tray icon was left-clicked.')
+        # TODO: When clicked and main is open, should ask if to minimize
+        self.on_open_main(None)
 
     def on_hello(self, event):
         if debug:
