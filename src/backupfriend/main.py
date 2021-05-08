@@ -652,11 +652,16 @@ class MainInvisibleWindow(wx.Frame):
 
         for key, val in edit_dict.items():
             if key=="name":
+                jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
+                if val in jobs_names:
+                    raise ValueError(f"'{val}' is alredy exist")
+
                 # rename the run dir
                 old_run_dir = os.path.join(DATA_PATH, "jobs_data",
                                            config["backups"][config_index]["name"])
                 new_run_dir = os.path.join(DATA_PATH, "jobs_data", val)
-                os.rename(old_run_dir, new_run_dir)
+                if os.path.isdir(old_run_dir):
+                    os.rename(old_run_dir, new_run_dir)
 
             config["backups"][config_index][key] = val
             self.sync_jobs[jobs_index].__dict__[key] = val
