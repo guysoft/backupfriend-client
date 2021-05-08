@@ -637,6 +637,10 @@ class MainInvisibleWindow(wx.Frame):
         with open(CONFIG_PATH, 'w') as f:
             yaml.dump(config, f)
 
+        run_dir = os.path.join(DATA_PATH, "jobs_data", backup_name)
+        if os.path.isdir(run_dir):
+            shutil.rmtree(run_dir)
+
         pub.sendMessage(CFG_UPDATE_MSG)
 
     def update_backup(self, backup_name, edit_dict):
@@ -647,6 +651,13 @@ class MainInvisibleWindow(wx.Frame):
             i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
 
         for key, val in edit_dict.items():
+            if key=="name":
+                # rename the run dir
+                old_run_dir = os.path.join(DATA_PATH, "jobs_data",
+                                           config["backups"][config_index]["name"])
+                new_run_dir = os.path.join(DATA_PATH, "jobs_data", val)
+                os.rename(old_run_dir, new_run_dir)
+
             config["backups"][config_index][key] = val
             self.sync_jobs[jobs_index].__dict__[key] = val
 
