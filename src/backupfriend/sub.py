@@ -1,11 +1,11 @@
 import wx
-from wx.adv import Wizard, WizardPageSimple
+import os.path
+from wx.adv import Wizard
 from wx.lib.mixins import listctrl
 from wx import xrc
-import os.path
 from backupfriend.make_ssh_key import generate_keys
 from backupfriend.common import get_data_path
-from .main import Backup
+from abc import ABC, abstractmethod
 
 DATA_PATH = get_data_path()
 
@@ -87,28 +87,19 @@ class ShowPublicKeyDialog(wx.Dialog):
         wx.Dialog.ShowModal(self, *args, **kw)
 
 
-class JobDialog(wx.Dialog):
+class AbstractJobDialog(wx.Dialog):
     def __init__(self, *args, **kw):
         wx.Dialog.__init__(self, *args, **kw)
         self.Bind(wx.EVT_BUTTON, self.close, id=xrc.XRCID('m_cancel'))
         self.Bind(wx.EVT_BUTTON, self.save, id=xrc.XRCID('m_save'))
-        # self.Bind(wx.EVT_INIT_DIALOG, self.on_init_dialog)
+
         return
 
-    def ShowModal(self, *args, **kw):
-        m_key = xrc.XRCCTRL(self, 'm_key_picker')
-        key_path = os.path.join(DATA_PATH, "id_rsa")
-        # m_key.SetInitialDirectory(os.path.dirname(key_path))
-        m_key.SetPath(key_path)
-        print(m_key.GetPath())
-        m_key.Refresh()
-        return wx.Dialog.ShowModal(self, *args, **kw)
 
     def close(self, event):
         self.Close()
 
     def save(self, event):
-        errors = []
         backup_dict = {
             "name": xrc.XRCCTRL(self, 'm_name').GetValue(),
             "source": xrc.XRCCTRL(self, 'm_source').GetPath(),
@@ -125,7 +116,7 @@ class JobDialog(wx.Dialog):
             elif not os.path.isfile(backup_dict["key"]):
                 raise ValueError("SSH key path does not exist")
 
-            self.GetParent().GetParent().add_backups([backup_dict])
+            self.updateFunction(backup_dict)
             self.Close()
         except ValueError as e:
             wx.MessageBox(str(e), 'Error', wx.OK | wx.ICON_EXCLAMATION)
@@ -136,6 +127,46 @@ class JobDialog(wx.Dialog):
         time_str = ':'.join(time_str)
         return time_str
 
+    def updateFunction(self, backup_dict):
+        pass
+
+
+class AddJobDialog(AbstractJobDialog):
+    def ShowModal(self, *args, **kw):
+        m_key = xrc.XRCCTRL(self, 'm_key_picker')
+        key_path = os.path.join(DATA_PATH, "id_rsa")
+        # m_key.SetInitialDirectory(os.path.dirname(key_path))
+        m_key.SetPath(key_path)
+        print(m_key.GetPath())
+        m_key.Refresh()
+        return wx.Dialog.ShowModal(self, *args, **kw)
+
+    def updateFunction(self, backup_dict):
+        self.GetParent().GetParent().add_backups([backup_dict])
+
+
+class EditJobDialog(AbstractJobDialog):
+    def ShowModal(self, *args, **kw):
+        self.job_name = self.GetParent().current_job
+        self.backup_to_update = self.GetParent().GetParent().get_backup_by_name(
+            self.job_name)
+
+        xrc.XRCCTRL(self, 'm_name').SetValue(self.backup_to_update.name)
+        xrc.XRCCTRL(self, 'm_source').SetPath(self.backup_to_update.source)
+        xrc.XRCCTRL(self, 'm_dest').SetValue(self.backup_to_update.dest)
+        xrc.XRCCTRL(self, 'm_port').SetValue(self.backup_to_update.port)
+        xrc.XRCCTRL(self, 'm_key_picker').SetPath(self.backup_to_update.key)
+
+        m_time = xrc.XRCCTRL(self, 'm_time')
+        time_elems = self.backup_to_update.time.split(':')
+        time_elems = map(int, time_elems)
+        m_time.SetTime(*time_elems, 0)
+
+        return wx.Dialog.ShowModal(self, *args, **kw)
+
+    def updateFunction(self, backup_dict):
+        self.GetParent().GetParent().update_backup(self.job_name, backup_dict)
+
 
 class DeleteJobDialog(wx.Dialog):
     def __init__(self, *args, **kw):
@@ -145,6 +176,8 @@ class DeleteJobDialog(wx.Dialog):
 
     def ShowModal(self, *args, **kw):
         self.job_name = kw.pop('job_name')
+        xrc.XRCCTRL(self, "m_static_text_delete").SetLabel(
+            f"Are you sure you want to delete '{self.job_name}'?")
 
         return wx.Dialog.ShowModal(self, *args, **kw)
 

@@ -238,6 +238,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_BUTTON, self.run_job, self.m_run_btn)
         self.Bind(wx.EVT_BUTTON, self.delete_job, self.m_delete_btn)
+        self.Bind(wx.EVT_BUTTON, self.show_edit_dialog, self.m_edit_btn)
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
 
         self.Centre()
@@ -280,7 +281,7 @@ class MainFrame(wx.Frame):
         self.display_job(job_name)
 
         self.m_run_btn.Enable()
-        # self.m_edit_btn.Enable()
+        self.m_edit_btn.Enable()
         self.m_delete_btn.Enable()
 
         return
@@ -289,7 +290,7 @@ class MainFrame(wx.Frame):
         self.current_job = None
 
         self.m_run_btn.Disable()
-        # self.m_edit_btn.Disable()
+        self.m_edit_btn.Disable()
         self.m_delete_btn.Disable()
 
     def run_job(self, event):
@@ -362,6 +363,11 @@ class MainFrame(wx.Frame):
 
     def show_public_key(self, event):
         dialog = self.res.LoadDialog(self, 'show_key_dialog')
+        dialog.ShowModal()
+        return
+
+    def show_edit_dialog(self, event):
+        dialog = self.res.LoadDialog(self, 'edit_job_dialog')
         dialog.ShowModal()
         return
 
@@ -618,10 +624,12 @@ class MainInvisibleWindow(wx.Frame):
 
     def delete_backup(self, backup_name):
         try:
-            del_index = next(i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+            del_index = next(
+                i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
             config["backups"].pop(del_index)
 
-            del_index = next(i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+            del_index = next(
+                i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
             self.sync_jobs.pop(del_index)
         except StopIteration:
             print(f"Error: no backup named {backup_name}")
@@ -629,7 +637,45 @@ class MainInvisibleWindow(wx.Frame):
         with open(CONFIG_PATH, 'w') as f:
             yaml.dump(config, f)
 
+        run_dir = os.path.join(DATA_PATH, "jobs_data", backup_name)
+        if os.path.isdir(run_dir):
+            shutil.rmtree(run_dir)
+
         pub.sendMessage(CFG_UPDATE_MSG)
+
+    def update_backup(self, backup_name, edit_dict):
+        config_index = next(
+            i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+
+        jobs_index = next(
+            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+
+        for key, val in edit_dict.items():
+            if key=="name":
+                jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
+                if val in jobs_names:
+                    raise ValueError(f"'{val}' is alredy exist")
+
+                # rename the run dir
+                old_run_dir = os.path.join(DATA_PATH, "jobs_data",
+                                           config["backups"][config_index]["name"])
+                new_run_dir = os.path.join(DATA_PATH, "jobs_data", val)
+                if os.path.isdir(old_run_dir):
+                    os.rename(old_run_dir, new_run_dir)
+
+            config["backups"][config_index][key] = val
+            self.sync_jobs[jobs_index].__dict__[key] = val
+
+        with open(CONFIG_PATH, 'w') as f:
+            yaml.dump(config, f)
+
+        pub.sendMessage(CFG_UPDATE_MSG)
+
+    def get_backup_by_name(self, backup_name):
+        job_index = next(
+            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+
+        return self.sync_jobs[job_index]
 
     def on_timer(self):
         # wx.CallLater(1000 * 60, self.on_timer)
