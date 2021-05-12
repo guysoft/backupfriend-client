@@ -13,6 +13,7 @@ setuptools.setup(
     author="Guy Sheffer",
     author_email="gusyoft@gmail.com",
     license="GPLv3",
+    py_modules=["backupfriendclient"],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
@@ -30,5 +31,5 @@ setuptools.setup(
         "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"',
         "appdirs", "rdiff-backup", "cryptography", "text-editor"
     ],
-    entry_points={"console_scripts": ["backupfriend=backupfriend.main:main"]},
+    entry_points={"console_scripts": ["backupfriend=backupfriendclient:run"]},
 )
