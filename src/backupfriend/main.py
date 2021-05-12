@@ -652,7 +652,9 @@ class MainInvisibleWindow(wx.Frame):
 
         for key, val in edit_dict.items():
             if key=="name":
-                jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
+                jobs_names = list(map(lambda backup:
+                                        backup.name if backup.name != backup_name else '',
+                                      self.sync_jobs))
                 if val in jobs_names:
                     raise ValueError(f"'{val}' is alredy exist")
 
