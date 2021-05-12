@@ -18,6 +18,24 @@ Screenshots
 .. :scale: 25https://raw.githubusercontent.com/guysoft/backupfriend-client/master/media/backfriend-client-screenshot.png %
 .. :alt: Main window
 
+Install
+=======
+
+Linux / Mac
+-----------
+
+Install the package::
+
+    sudo pip3 install git+https://github.com/guysoft/backupfriend-client
+
+Windows
+-------
+
+There is a package built in github actions you can download an extract.
+When the inital release is done it will be avilable the relase tag.
+You can find them here the bottom of the page of each run: 
+https://github.com/guysoft/backupfriend-client/actions/workflows/main.yaml
+
 Build and develop
 =================
 
