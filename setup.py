@@ -29,7 +29,7 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"',
-        "appdirs", "rdiff-backup", "cryptography", "text-editor"
+        "appdirs", "rdiff-backup", "cryptography"
     ],
     entry_points={"console_scripts": ["backupfriend=backupfriendclient:run"]},
 )
