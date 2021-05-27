@@ -15,6 +15,7 @@ import wx.lib.inspection
 import shutil
 import shlex
 from pubsub import pub
+from shlex import quote
 
 
 TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
@@ -547,8 +548,8 @@ class Backup:
             bin_path = bin_path.replace("__package_path__", resource_path())
             
             cmd = [bin_path, "-v6", "--remote-schema",
-                   '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", self.source,
-                   self.dest]
+                   '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", quote(self.source),
+                   quote(self.dest)]
             command = " ".join(cmd)
             known_hosts_location = os.path.realpath(os.path.join(os.path.dirname(ssh_path), "..", "home", os.getlogin()))
             ensure_dir(known_hosts_location)
@@ -557,7 +558,7 @@ class Backup:
             cmd = [bin_path,
                    "-v6",
                    " --remote-schema 'ssh -p " + str(self.port) + " -o StrictHostKeyChecking=no -i " + self.key + " %s rdiff-backup --server'",
-                   "--", self.source, self.dest]
+                   "--", quote(self.source), quote(self.dest)]
             command = " ".join(cmd)
 
         if debug:
