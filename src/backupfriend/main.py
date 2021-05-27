@@ -608,7 +608,7 @@ class MainInvisibleWindow(wx.Frame):
         for backup in backups_list:
             # Sanity_check
             if backup["name"] in jobs_names:
-                raise ValueError(f"'{backup['name']}' is alredy exist")
+                raise ValueError(f"Job with the name '{backup['name']}' already exists")
             if backup["name"] == "":
                 raise ValueError("Name can't be empty")
             if backup["source"] == "":
