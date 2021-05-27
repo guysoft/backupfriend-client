@@ -381,7 +381,7 @@ class MainFrame(wx.Frame):
         if debug:
             print("open settings")
         if "win" in sys.platform:
-            os.system(CONFIG_PATH)
+            os.system("notepad " + quote(CONFIG_PATH))
         else:
             os.system("xdg-open '" + CONFIG_PATH + "'")
         return
