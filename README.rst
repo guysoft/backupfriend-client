@@ -21,8 +21,17 @@ Screenshots
 Install
 =======
 
-Linux / Mac
------------
+Linux
+-----
+
+Install depdenceies and package::
+
+    sudo apt-get install build-essential libgtk-3-dev
+    sudo pip3 install git+https://github.com/guysoft/backupfriend-client
+    
+Mac
+---
+
 
 Install the package::
 
