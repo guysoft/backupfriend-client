@@ -16,6 +16,7 @@ import shutil
 import shlex
 from pubsub import pub
 from shlex import quote
+import webbrowser
 
 
 TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
@@ -238,10 +239,12 @@ class MainFrame(wx.Frame):
         self.m_run_btn = xrc.XRCCTRL(self.panel, "m_run")
         self.m_edit_btn = xrc.XRCCTRL(self.panel, "m_edit")
         self.m_delete_btn = xrc.XRCCTRL(self.panel, "m_delete")
+        self.m_go_to_server_btn = xrc.XRCCTRL(self.panel, "m_go_to_server")
 
         self.Bind(wx.EVT_BUTTON, self.run_job, self.m_run_btn)
-        self.Bind(wx.EVT_BUTTON, self.delete_job, self.m_delete_btn)
         self.Bind(wx.EVT_BUTTON, self.show_edit_dialog, self.m_edit_btn)
+        self.Bind(wx.EVT_BUTTON, self.delete_job, self.m_delete_btn)
+        self.Bind(wx.EVT_BUTTON, self.go_to_server, self.m_go_to_server_btn)
         self.Bind(wx.EVT_BUTTON, self.show_create_dialog, id=xrc.XRCID('m_add'))
 
         self.Centre()
@@ -288,6 +291,7 @@ class MainFrame(wx.Frame):
         self.m_run_btn.Enable()
         self.m_edit_btn.Enable()
         self.m_delete_btn.Enable()
+        self.m_go_to_server_btn.Enable()
 
         return
 
@@ -315,6 +319,19 @@ class MainFrame(wx.Frame):
         dialog.ShowModal(job_name=self.current_job)
         self.current_job = None
 
+        return
+
+    def go_to_server(self, event):
+        job = self.GetParent().get_job_by_name(self.current_job)
+        print(job.server_url)
+        print(job.server_username)
+        dest = job.dest.split("::")[1]
+        dest = "/".join(dest.split("/")[2:])
+
+        url = job.server_url + "/browse/" + job.server_username + "/" + dest
+        if debug:
+            print(url)
+        webbrowser.open(url)
         return
 
 
@@ -381,6 +398,7 @@ class MainFrame(wx.Frame):
         selected_item = self.m_list_syncs.GetFirstSelected()
 
         items_num = self.m_list_syncs.GetItemCount()
+        # TODO: debug wx._core.wxAssertionError exception of line below
         name_in_list = self.m_list_syncs.GetItem(selected_item, name_col).GetText()
 
         job = self.GetParent().get_job_by_name(name)
@@ -514,6 +532,8 @@ class Backup:
     dest: str
     port: str
     key: str
+    server_url: str
+    server_username: str
     every: str
     time: str
     window: wx.Frame
@@ -697,6 +717,11 @@ class MainInvisibleWindow(wx.Frame):
                 raise ValueError("Source can't be empty")
             if backup["dest"] == "":
                 raise ValueError("Destination can't be empty")
+
+            # Fix missing fields from older builds
+            for item in ["server_url", "server_username"]:
+                if item not in backup:
+                    backup[item] = ""
 
             if not in_config:
                 config["backups"].append(backup)

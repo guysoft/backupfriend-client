@@ -426,6 +426,40 @@
 						<option>0</option>
 						<flag>wxALL</flag>
 						<border>5</border>
+						<object class="wxStaticText" name="m_staticText28">
+							<label>Server URL</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxTextCtrl" name="m_server_url">
+							<value>http://backupfriend.local</value>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText29">
+							<label>Server Username</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxTextCtrl" name="m_server_username">
+							<value>admin</value>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
 						<object class="wxStaticText" name="m_staticText15">
 							<label>Repeat</label>
 							<wrap>-1</wrap>
@@ -633,6 +667,40 @@
 							<message>Select the id__rsa key</message>
 							<wildcard>*.*</wildcard>
 							<style>wxFLP_DEFAULT_STYLE|wxFLP_USE_TEXTCTRL</style>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText28">
+							<label>Server URL</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxTextCtrl" name="m_server_url">
+							<value>http://backupfriend.local</value>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText29">
+							<label>Server Username</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxTextCtrl" name="m_server_username">
+							<value>admin</value>
 						</object>
 					</object>
 					<object class="sizeritem">

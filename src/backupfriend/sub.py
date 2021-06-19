@@ -121,6 +121,8 @@ class AbstractJobDialog(wx.Dialog):
             "source": xrc.XRCCTRL(self, 'm_source').GetPath(),
             "dest": xrc.XRCCTRL(self, 'm_dest').GetValue(),
             "port": xrc.XRCCTRL(self, 'm_port').GetValue(),
+            "server_url": xrc.XRCCTRL(self, 'm_server_url').GetValue(),
+            "server_username": xrc.XRCCTRL(self, 'm_server_username').GetValue(),
             "key": xrc.XRCCTRL(self, 'm_key_picker').GetPath(),
             "every": "daily",
             "time": self._time2str(xrc.XRCCTRL(self, 'm_time').GetTime())
@@ -175,6 +177,8 @@ class EditJobDialog(AbstractJobDialog):
         xrc.XRCCTRL(self, 'm_dest').SetValue(self.backup_to_update.dest)
         xrc.XRCCTRL(self, 'm_port').SetValue(self.backup_to_update.port)
         xrc.XRCCTRL(self, 'm_key_picker').SetPath(self.backup_to_update.key)
+        xrc.XRCCTRL(self, 'm_server_url').SetValue(self.backup_to_update.server_url)
+        xrc.XRCCTRL(self, 'm_server_username').SetValue(self.backup_to_update.server_username)
 
         m_time = xrc.XRCCTRL(self, 'm_time')
         time_elems = self.backup_to_update.time.split(':')
