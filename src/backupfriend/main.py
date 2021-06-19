@@ -372,8 +372,30 @@ class MainFrame(wx.Frame):
                 self.m_list_syncs.SetItemTextColour(i, color)
         return
 
+    def add_new_job_to_run_list(self, name):
+        name_col = self.m_list_syncs.data_keys.index("name")
+
+        selected_item = self.m_list_syncs.GetFirstSelected()
+
+        items_num = self.m_list_syncs.GetItemCount()
+        name_in_list = self.m_list_syncs.GetItem(selected_item, name_col).GetText()
+
+        job = self.GetParent().get_job_by_name(name)
+
+        # Add item to list if selected
+        item_count = len(job.get_log_files())
+        if name_in_list == name:
+            self.m_list_runs.InsertItem(item_count, str(item_count))
+            if debug:
+                print(item_count)
+            self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("id"), str(item_count))
+            self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("Time Ran"), "now")
+        self.m_list_runs.resizeLastColumn(0)
+
     def update_start_job(self, name):
         self.set_row_runnung(name, "blue")
+        self.add_new_job_to_run_list(name)
+
 
     def update_end_job(self, name, success):
         if success:
@@ -538,7 +560,10 @@ class Backup:
             log.write(text)
 
     def get_log(self, run_name):
-        with open(os.path.join(self.get_run_folder(), run_name), "r") as log:
+        log_file = os.path.join(self.get_run_folder(), run_name)
+        if not os.path.isfile(log_file):
+            return "Log empty"
+        with open(log_file, "r") as log:
             return_value = log.read()
         return return_value
 
@@ -611,8 +636,6 @@ class Backup:
             self.update_log(text)
             wx.LogMessage(text)
 
-        # TODO: Parse output and mark success False on fail
-        pub.sendMessage(END_JOB_MSG, name=self.name, success=True)
         print("Finish reading")
         return
 
@@ -717,6 +740,8 @@ class MainInvisibleWindow(wx.Frame):
                 if sync_job.process_object is not None:
                     if sync_job.process_object.terminated:
                         print("terminated")
+                        # TODO: Parse output and mark success False on fail
+                        pub.sendMessage(END_JOB_MSG, name=sync_job.name, success=True)
 
                         stream = sync_job.process_object.GetInputStream()
 
