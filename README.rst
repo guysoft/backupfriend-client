@@ -26,7 +26,7 @@ Linux
 
 Install depdenceies and package::
 
-    sudo apt-get install build-essential libgtk-3-dev
+    sudo apt-get install build-essential libgtk-3-dev librsync-dev
     sudo pip3 install git+https://github.com/guysoft/backupfriend-client
     
 Mac
