@@ -514,6 +514,7 @@ class Backup:
     every: str
     time: str
     window: wx.Frame
+    test_dummy: bool
 
     def prepare_job(self):
         self.process_object = None
@@ -526,7 +527,7 @@ class Backup:
     def __post_init__(self):
         self.process_object = None
         self.pid = None
-        if self.every == "daily":
+        if not self.test_dummy and self.every == "daily":
             # schedule.every().seconds.do(
             #     lambda: self.run_backup())
             schedule.every().day.at(self.time).do(lambda: self.run_backup())
@@ -574,6 +575,36 @@ class Backup:
 
     def running(self):
         return self.process_object is not None and ( not self.process_object.terminated)
+
+    def test_connection(self):
+        if not os.path.isdir(self.source):
+            return "Path does not exist"
+
+        if self.key == "":
+            return "SSH key can't be empty"
+
+        if not os.path.isfile(self.key):
+            return "SSH key path does not exist"
+
+        config = get_config()
+        ssh_path = config["main"]["ssh"]
+
+        hostname_and_user = self.dest.split("::")[0]
+        dest_path = self.dest.split("::")[1]
+
+        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "whoami"]
+        stdout, stderror = _run_command(command)
+        if stderror != "":
+            return stderror
+
+        # At this point we have a connection that works, the dest folder might be missing
+
+        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "ls " + dest_path]
+        stdout, stderror = _run_command(command)
+        if stderror != "":
+            return "Folder on server does not exist or has no permission: " + dest_path
+
+        return "Connection succeeded"
 
     def run_backup(self):
         pub.sendMessage(START_JOB_MSG, name=self.name)
@@ -666,7 +697,7 @@ class MainInvisibleWindow(wx.Frame):
 
             if not in_config:
                 config["backups"].append(backup)
-            backup_class = Backup(**backup, window=self)
+            backup_class = Backup(**backup, window=self, test_dummy=False)
             self.sync_jobs.append(backup_class)
 
         if not in_config:

@@ -6,6 +6,7 @@ from wx import xrc
 from backupfriend.make_ssh_key import generate_keys
 from backupfriend.common import get_data_path
 from abc import ABC, abstractmethod
+from backupfriend.main import Backup
 
 DATA_PATH = get_data_path()
 
@@ -92,6 +93,7 @@ class AbstractJobDialog(wx.Dialog):
         wx.Dialog.__init__(self, *args, **kw)
         self.Bind(wx.EVT_BUTTON, self.close, id=xrc.XRCID('m_cancel'))
         self.Bind(wx.EVT_BUTTON, self.save, id=xrc.XRCID('m_save'))
+        self.Bind(wx.EVT_BUTTON, self.test, id=xrc.XRCID('m_test'))
 
         return
 
@@ -99,8 +101,22 @@ class AbstractJobDialog(wx.Dialog):
     def close(self, event):
         self.Close()
 
-    def save(self, event):
-        backup_dict = {
+    def test(self, event):
+        """ Test button for connection """
+        m_info = xrc.XRCCTRL(self, 'm_info')
+        m_info.SetLabel("Testing connection")
+
+        backup_dict = self.gather_all_fields()
+
+        test_backup = Backup(**backup_dict, window=self, test_dummy=True)
+        result = test_backup.test_connection()
+        m_info.SetLabel(result)
+
+        print(result)
+        return
+
+    def gather_all_fields(self):
+        return {
             "name": xrc.XRCCTRL(self, 'm_name').GetValue(),
             "source": xrc.XRCCTRL(self, 'm_source').GetPath(),
             "dest": xrc.XRCCTRL(self, 'm_dest').GetValue(),
@@ -109,6 +125,9 @@ class AbstractJobDialog(wx.Dialog):
             "every": "daily",
             "time": self._time2str(xrc.XRCCTRL(self, 'm_time').GetTime())
         }
+
+    def save(self, event):
+        backup_dict = self.gather_all_fields()
 
         try:
             if backup_dict["key"] == "":
