@@ -21,6 +21,8 @@ from shlex import quote
 TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
 TRAY_TOOLTIP = 'BackupFriend'
 CFG_UPDATE_MSG = "config_update"
+START_JOB_MSG = "job_start"
+END_JOB_MSG = "job_end"
 
 # TODO:
 # 1. Make settings window
@@ -272,6 +274,8 @@ class MainFrame(wx.Frame):
 
         self.update_list_sync()
         pub.subscribe(self.update_list_sync, CFG_UPDATE_MSG)
+        pub.subscribe(self.update_start_job, START_JOB_MSG)
+        pub.subscribe(self.update_end_job, END_JOB_MSG)
 
         # print(wx.geta.sync_jobs)
 
@@ -347,7 +351,7 @@ class MainFrame(wx.Frame):
         return
 
     def update_list_sync(self):
-        items_num = self.m_list_syncs.GetItemCount();
+        items_num = self.m_list_syncs.GetItemCount()
         sync_jobs_list = list(self.GetParent().sync_jobs)
         self.m_list_syncs.DeleteAllItems()
 
@@ -357,6 +361,25 @@ class MainFrame(wx.Frame):
                 self.m_list_syncs.SetItem(i, j, job.__dict__[key])
 
         self.m_list_syncs.resizeLastColumn(0)
+
+    def set_row_runnung(self, name, color):
+        items_num = self.m_list_syncs.GetItemCount()
+        name_col = self.m_list_syncs.data_keys.index("name")
+
+        for i in range(items_num):
+            name_in_list = self.m_list_syncs.GetItem(i, name_col).GetText()
+            if name_in_list == name:
+                self.m_list_syncs.SetItemTextColour(i, color)
+        return
+
+    def update_start_job(self, name):
+        self.set_row_runnung(name, "blue")
+
+    def update_end_job(self, name, success):
+        if success:
+            self.set_row_runnung(name, "green")
+        else:
+            self.set_row_runnung(name, "red")
 
     def exit(self, event):
         wx.Exit()
@@ -528,6 +551,7 @@ class Backup:
         return self.process_object is not None and ( not self.process_object.terminated)
 
     def run_backup(self):
+        pub.sendMessage(START_JOB_MSG, name=self.name)
         self.prepare_job()
         if debug:
             print("hello!!!!!!!!!!!!!!")
@@ -587,8 +611,9 @@ class Backup:
             self.update_log(text)
             wx.LogMessage(text)
 
+        # TODO: Parse output and mark success False on fail
+        pub.sendMessage(END_JOB_MSG, name=self.name, success=True)
         print("Finish reading")
-
         return
 
 
