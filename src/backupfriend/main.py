@@ -306,6 +306,9 @@ class MainFrame(wx.Frame):
             job.run_backup()
         else:
             print("Job already running")
+            wx.MessageDialog(self, 'Job "' + job.name + '" already running', caption="Job already running",
+              style=wx.OK|wx.CENTRE, pos=wx.DefaultPosition).ShowModal()
+
 
     def delete_job(self, event):
         dialog = self.res.LoadDialog(self, 'delete_job_dialog')
