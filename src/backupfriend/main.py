@@ -38,6 +38,7 @@ else:
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config.yml")
 CONFIG_PATH = os.path.join(DATA_PATH, "config", "config.yml")
 
+
 def get_config():
     if not os.path.isfile(CONFIG_PATH):
         ensure_dir(os.path.dirname(CONFIG_PATH))
@@ -717,6 +718,8 @@ class MainInvisibleWindow(wx.Frame):
                 raise ValueError("Source can't be empty")
             if backup["dest"] == "":
                 raise ValueError("Destination can't be empty")
+
+            backup["key"] = os.path.expanduser(backup["key"])
 
             # Fix missing fields from older builds
             for item in ["server_url", "server_username"]:
