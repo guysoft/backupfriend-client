@@ -720,6 +720,7 @@ class MainInvisibleWindow(wx.Frame):
                 raise ValueError("Destination can't be empty")
 
             backup["key"] = os.path.expanduser(backup["key"])
+            backup["source"] = os.path.expanduser(backup["source"])
 
             # Fix missing fields from older builds
             for item in ["server_url", "server_username"]:
