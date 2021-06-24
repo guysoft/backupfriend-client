@@ -610,35 +610,27 @@ class Backup:
         if not os.path.isfile(self.key):
             return "SSH key path does not exist"
 
-        config = get_config()
-        ssh_path = config["main"]["ssh"]
-
+        _, ssh_path = self.get_bin_ssh_path()
+        
         hostname_and_user = self.dest.split("::")[0]
         dest_path = self.dest.split("::")[1]
 
         command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "whoami"]
+        
         stdout, stderror = _run_command(command)
         if stderror != "":
             return stderror
 
         # At this point we have a connection that works, the dest folder might be missing
 
-        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "ls " + dest_path]
+        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "mkdir -p " + dest_path]
         stdout, stderror = _run_command(command)
         if stderror != "":
             return "Folder on server does not exist or has no permission: " + dest_path
 
         return "Connection succeeded"
-
-    def run_backup(self):
-        pub.sendMessage(START_JOB_MSG, name=self.name)
-        self.prepare_job()
-        if debug:
-            print("hello!!!!!!!!!!!!!!")
-        config = get_config()
-
-        self.process_object = SyncProcess(self.window)
-        self.process_object.Redirect()
+    
+    def get_bin_ssh_path(self):
         bin_path = config["main"]["bin"]
         ssh_path = config["main"]["ssh"]
 
@@ -650,9 +642,21 @@ class Backup:
             # ssh_path = r'C:\Users\user\Desktop\backupfriend-client\ssh.exe'            
             ssh_path = ssh_path.replace("__package_path__", resource_path())
             bin_path = bin_path.replace("__package_path__", resource_path())
+        return bin_path, ssh_path
+    
+    def run_backup(self):
+        pub.sendMessage(START_JOB_MSG, name=self.name)
+        self.prepare_job()
+        if debug:
+            print("hello!!!!!!!!!!!!!!")
+        config = get_config()
 
-            
-            from pathlib import Path
+        self.process_object = SyncProcess(self.window)
+        self.process_object.Redirect()
+        
+        bin_path, ssh_path = self.get_bin_ssh_path()
+        
+        if "win" in sys.platform:
             cmd = [bin_path, "-v6", "--remote-schema",
                    '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", '"' + self.source + '"',
                    self.dest]
