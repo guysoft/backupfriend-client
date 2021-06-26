@@ -32,7 +32,17 @@ debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
 DATA_PATH = get_data_path()
 
-if "win" in sys.platform:
+def get_os():
+    if sys.platform.startswith("win"):
+        return "windows"
+    elif sys.platform == "darwin":
+        return "osx"
+    elif sys.platform == "linux":
+        return "linux"
+    else:
+        return "unkonwn"
+
+if get_os() == "windows":
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config-windows.yml")
 else:
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config.yml")
@@ -53,7 +63,7 @@ def save_config():
 
 config = get_config()
 
-if "ssh" not in config["main"] and "win" not in sys.platform:
+if "ssh" not in config["main"] and not get_os() == "windows"
     ssh = subprocess.run(['which', 'ssh'], capture_output=True, text=True).stdout.strip()
     config["main"]["ssh"] = ssh
     save_config()
@@ -447,7 +457,7 @@ class MainFrame(wx.Frame):
     def open_settings(self, event):
         if debug:
             print("open settings")
-        if "win" in sys.platform:
+        if get_os() == "windows":
             os.system("notepad " + quote(CONFIG_PATH))
         else:
             os.system("xdg-open '" + CONFIG_PATH + "'")
@@ -638,7 +648,7 @@ class Backup:
         bin_path = config["main"]["bin"]
         ssh_path = config["main"]["ssh"]
 
-        if "win" in sys.platform:
+        if get_os() == "windows":
             if debug:
                 print("windows detected, adjusting binary path in package")
             
@@ -660,7 +670,7 @@ class Backup:
         
         bin_path, ssh_path = self.get_bin_ssh_path()
         
-        if "win" in sys.platform:
+        if get_os() == "windows":
             cmd = [bin_path, "-v6", "--remote-schema",
                    '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", '"' + self.source + '"',
                    self.dest]
