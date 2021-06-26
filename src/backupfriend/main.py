@@ -551,6 +551,10 @@ class Backup:
     def __post_init__(self):
         self.process_object = None
         self.pid = None
+        if "__user_data__" in self.key:
+            self.key = self.key.replace("__user_data__", "")
+            self.key = os.path.join(DATA_PATH, self.key)
+        
         if not self.test_dummy and self.every == "daily":
             # schedule.every().seconds.do(
             #     lambda: self.run_backup())

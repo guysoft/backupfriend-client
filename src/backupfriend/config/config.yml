@@ -2,20 +2,13 @@ main:
   bin: /usr/local/bin/rdiff-backup
   # bin: "echo"
 backups:
-  - name: "test"
-    source: "/home/guy/xchat2.bak"
-    dest: "user@gnethomelinux.com::/backup-data/test"
+  - name: "example"
+    source: "/tmp"
+    dest: "user@backupfriend.local::/backup/usb0/example"
     port: "8022"
-    key: "/home/guy/.ssh/id_rsa_passwordless"
+    key: "~/.backupfriend/id_rsa"
+    server_username: admin
+    server_url: http://backupfriend
     every: "daily"
-    # evrey: "sunday"
-    time: "19:52"
+    time: "08:00"
 
-  - name: "test2"
-    source: "/home/guy/xchat2.bak"
-    dest: "user@gnethomelinux.com::/backup-data/test"
-    port: "8022"
-    key: "/home/guy/.ssh/id_rsa_passwordless"
-    every: "daily"
-    # evrey: "sunday"
-    time: "04:32"

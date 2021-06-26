@@ -2,20 +2,12 @@ main:
   bin: "__package_path__\\bin\\rdiff-backup.exe"
   ssh: "__package_path__\\bin\\ssh.exe"
 backups:
-  - name: "test"
-    source: "c:\\a"
-    dest: "user@gnethomelinux.com::/tmp/a"
+  - name: "example"
+    source: "c:\\Temp"
+    dest: "user@backupfriend.local::/backup/usb0/example"
     port: "8022"
-    key: "c:\\b\\id_rsa"
+    key: "__user_data__\\id_rsa"
+    server_username: admin
+    server_url: http://backupfriend
     every: "daily"
-    # evrey: "sunday"
-    time: "20:47"
-
-  - name: "test2"
-    source: "c:\\a"
-    dest: "user@gnethomelinux.com::/tmp/a"
-    port: "8022"
-    key: "c:\\b\\id_rsa"
-    every: "daily"
-    # evrey: "sunday"
-    time: "21:47"
+    time: "08:00"
