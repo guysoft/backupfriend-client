@@ -4,7 +4,7 @@ main:
 backups:
   - name: "example"
     source: "/tmp"
-    dest: "user@backupfriend.local::/backup/usb0/example"
+    dest: "user@backupfriend.local::/backup/usb/example"
     port: "8022"
     key: "~/.backupfriend/id_rsa"
     server_username: admin

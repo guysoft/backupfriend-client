@@ -3,8 +3,8 @@ main:
   ssh: "__package_path__\\bin\\ssh.exe"
 backups:
   - name: "example"
-    source: "c:\\Temp"
-    dest: "user@backupfriend.local::/backup/usb0/example"
+    source: "C:\\Windows\\Temp"
+    dest: "user@backupfriend::/backup/media/usb/example"
     port: "8022"
     key: "__user_data__\\id_rsa"
     server_username: admin
