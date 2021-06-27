@@ -17,6 +17,7 @@ import shlex
 from pubsub import pub
 from shlex import quote
 import webbrowser
+import traceback
 
 
 TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
@@ -410,19 +411,24 @@ class MainFrame(wx.Frame):
 
         items_num = self.m_list_syncs.GetItemCount()
         # TODO: debug wx._core.wxAssertionError exception of line below
-        name_in_list = self.m_list_syncs.GetItem(selected_item, name_col).GetText()
+        try:
+            name_in_list = self.m_list_syncs.GetItem(selected_item, name_col).GetText()
 
-        job = self.GetParent().get_job_by_name(name)
+            job = self.GetParent().get_job_by_name(name)
 
-        # Add item to list if selected
-        item_count = len(job.get_log_files())
-        if name_in_list == name:
-            self.m_list_runs.InsertItem(item_count, str(item_count))
-            if debug:
-                print(item_count)
-            self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("id"), str(item_count))
-            self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("Time Ran"), "now")
-        self.m_list_runs.resizeLastColumn(0)
+            # Add item to list if selected
+            item_count = len(job.get_log_files())
+            if name_in_list == name:
+                self.m_list_runs.InsertItem(item_count, str(item_count))
+                if debug:
+                    print(item_count)
+                self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("id"), str(item_count))
+                self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("Time Ran"), "now")
+            self.m_list_runs.resizeLastColumn(0)
+        except wx._core.wxAssertionError as e:
+            print("Got wx._core.wxAssertionError")
+            print(str(traceback.format_exc()))
+            print(e)
 
     def update_start_job(self, name):
         self.set_row_runnung(name, "blue")
