@@ -63,7 +63,7 @@ def save_config():
 
 config = get_config()
 
-if "ssh" not in config["main"] and not get_os() == "windows"
+if "ssh" not in config["main"] and not get_os() == "windows":
     ssh = subprocess.run(['which', 'ssh'], capture_output=True, text=True).stdout.strip()
     config["main"]["ssh"] = ssh
     save_config()
@@ -563,6 +563,8 @@ class Backup:
         self.pid = None
         if "__user_data__" in self.key:
             self.key = self.key.replace("__user_data__", "")
+            if self.key.startswith("\\"):
+                self.key = self.key[1:]
             self.key = os.path.join(DATA_PATH, self.key)
         
         if not self.test_dummy and self.every == "daily":
@@ -615,6 +617,7 @@ class Backup:
         return self.process_object is not None and ( not self.process_object.terminated)
 
     def test_connection(self):
+        # TODO: Test if path to ssh command exist beforehand
         if not os.path.isdir(self.source):
             return "Path does not exist"
 
@@ -630,17 +633,25 @@ class Backup:
         dest_path = self.dest.split("::")[1]
 
         command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "whoami"]
+
+        try:
+            stdout, stderror = _run_command(command)
+            if stderror != "":
+                return stderror
+        except Exception as e:
+            return "Got exception when runnign command: " + str(e)
         
-        stdout, stderror = _run_command(command)
-        if stderror != "":
-            return stderror
 
         # At this point we have a connection that works, the dest folder might be missing
 
         command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "mkdir -p " + dest_path]
-        stdout, stderror = _run_command(command)
-        if stderror != "":
-            return "Folder on server does not exist or has no permission: " + dest_path
+
+        try:
+            stdout, stderror = _run_command(command)
+            if stderror != "":
+                return "Folder on server does not exist or has no permission: " + dest_path
+        except Exception as e:
+            return "Got exception when runnign command: " + str(e)
 
         return "Connection succeeded"
     
