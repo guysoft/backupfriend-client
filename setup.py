@@ -3,6 +3,16 @@ import setuptools
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
+P2APP_OPTIONS = {
+    'argv_emulation': True,
+    'site_packages': True,
+    #'iconfile': 'appicon.icns',
+    'packages': ["wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"',
+        "appdirs", "rdiff-backup", "cryptography", "pypubsub"],
+    'plist': {
+        'CFBundleName': 'BackupFriend',
+    }
+}
 setuptools.setup(
     name="backupfriend",
     version="0.1.0",
@@ -32,4 +42,7 @@ setuptools.setup(
         "appdirs", "rdiff-backup", "cryptography", "pypubsub"
     ],
     entry_points={"console_scripts": ["backupfriend=backupfriendclient:run"]},
+    app=['src/backupfriend-client.py'],
+    options={'py2app': P2APP_OPTIONS},
+    setup_requires=['py2app'],
 )

@@ -1,0 +1,55 @@
+name: Package Application for Mac OS X
+on: [push, pull_request]
+
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [macos-latest]
+        python-version: ['3.9']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install pipkk
+        run: python -m pip install py2app
+      - name: upgrade pip
+        run: python -m pip install --upgrade pip
+      - name: install requirements.txt
+        run: python -m pip install -r requirements.txt
+      - name: Build app
+        run: python3 setup.py py2app
+      - name: Codesign executable
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_ID: ${{ secrets.MACOS_CERTIFICATE_ID }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        run: |
+          echo ${MACOS_CERTIFICATE} | base64 --decode > certificate.p12
+          echo A
+          security create-keychain -p build.keychain build.keychain1
+          echo B
+          security default-keychain -s build.keychain1
+          echo C
+          security unlock-keychain -p build.keychain build.keychain1
+          echo D
+          security import certificate.p12 -k build.keychain1 -P ${MACOS_CERTIFICATE_PWD} -T /usr/bin/codesign
+          echo E
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k build.keychain build.keychain1
+          echo F
+          cp -v /System/Volumes/Data/Users/runner/hostedtoolcache/Python/3.9.5/x64/lib/python3.9/site-packages/PIL/.dylibs/liblzma.5.dylib /Users/runner/work/test-actions/test-actions/dist/BackupFriend.app/Contents/Frameworks/liblzma.5.dylib
+          echo G
+          /usr/bin/codesign --force --deep -s "Developer ID Application: Guy Sheffer (K8784SVNX8)" dist/BackupFriend.app -v
+          echo H
+          rm -fr *.p12
+      - uses: actions/upload-artifact@v2
+        with:
+          name: backupfriend-client-macos
+          path: dist/
