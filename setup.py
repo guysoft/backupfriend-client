@@ -13,6 +13,14 @@ P2APP_OPTIONS = {
         'CFBundleName': 'BackupFriend',
     }
 }
+
+install_requires=[
+        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
+
+if sys.platform == "darwin":
+    install_requires = [        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
+
+
 setuptools.setup(
     name="backupfriend",
     version="0.1.0",
@@ -37,10 +45,7 @@ setuptools.setup(
                 ('config', ['src/backupfriend/config/config.yml']),
                 ('res', ['src/backupfriend/res/main.xrc'])],
     include_package_data=True,
-    install_requires=[
-        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"',
-        "appdirs", "rdiff-backup", "cryptography", "pypubsub"
-    ],
+    install_requires=install_requires,
     entry_points={"console_scripts": ["backupfriend=backupfriendclient:run"]},
     app=['src/backupfriend-client.py'],
     options={'py2app': P2APP_OPTIONS},
