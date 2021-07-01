@@ -19,16 +19,20 @@ jobs:
           brew install wxpython
           brew install libyaml
           brew upgrade
+      - name: Display Brew pahth
+        run: brew --prefix
+      - name: which python3
+        run: which python3
       - name: Display Python version
-        run: /usr/local/opt/python/libexec/bin/python3 -c "import sys; print(sys.version)"
+        run: python3 -c "import sys; print(sys.version)"
       - name: Install pip
-        run: /usr/local/opt/python/libexec/bin/python3 -m pip install py2app
+        run: python3 -m pip install py2app
       - name: upgrade pip
-        run: /usr/local/opt/python/libexec/bin/python3 -m pip install --upgrade pip
+        run: python3 -m pip install --upgrade pip
       - name: install requirements.txt
-        run: /usr/local/opt/python/libexec/bin/python3 -m pip install -r requirements.txt
+        run: python3 -m pip install -r requirements.txt
       - name: Build app
-        run: /usr/local/opt/python/libexec/bin/python3 setup.py py2app
+        run: python3 setup.py py2app
       - name: Codesign executable
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
