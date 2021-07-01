@@ -8,8 +8,8 @@ P2APP_OPTIONS = {
     'argv_emulation': True,
     'site_packages': True,
     #'iconfile': 'appicon.icns',
-    'packages': ["wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"',
-        "appdirs", "cryptography", "pypubsub"],
+    'packages': ["wxPython", "PyYAML", "schedule",
+                 "appdirs", "cryptography", "pypubsub"],
     'plist': {
         'CFBundleName': 'BackupFriend',
     }
