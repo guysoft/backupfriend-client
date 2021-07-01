@@ -19,7 +19,7 @@ install_requires=[
         "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
 
 if sys.platform == "darwin":
-    install_requires = [        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
+    install_requires = [        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "cryptography", "pypubsub"]
 
 
 setuptools.setup(
