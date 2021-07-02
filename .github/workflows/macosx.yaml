@@ -51,7 +51,6 @@ jobs:
           echo E
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k build.keychain build.keychain1
           echo F
-          cp -v /System/Volumes/Data/usr/local/lib/python3.9/site-packages/PIL/.dylibs/liblzma.5.dylib /Users/runner/work/test-actions/test-actions/dist/BackupFriend.app/Contents/Frameworks/liblzma.5.dylib
           echo G
           /usr/bin/codesign --force --deep -s "Developer ID Application: Guy Sheffer (K8784SVNX8)" dist/BackupFriend.app -v
           echo H
