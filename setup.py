@@ -9,7 +9,7 @@ P2APP_OPTIONS = {
     'site_packages': True,
     #'iconfile': 'appicon.icns',
     'packages': ["schedule",
-                 "appdirs", "cryptography", "pypubsub"],
+                 "appdirs", "cryptography"],
     'plist': {
         'CFBundleName': 'BackupFriend',
     }
