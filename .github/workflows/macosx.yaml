@@ -57,6 +57,8 @@ jobs:
           /usr/bin/codesign --force --deep -s "Developer ID Application: Guy Sheffer (K8784SVNX8)" dist/BackupFriend.app/Contents/Frameworks/Python.framework/Versions/Current -v
           /usr/bin/codesign --force --deep -s "Developer ID Application: Guy Sheffer (K8784SVNX8)" dist/BackupFriend.app/Contents/Frameworks/Python.framework -v
           /usr/bin/codesign --verify --verbose dist/BackupFriend.app
+          tar czvf BackupFriend.tar.gz dist/BackupFriend.app
+          rm -rf dist/BackupFriend.app
           rm -fr *.p12
       - uses: actions/upload-artifact@v2
         with:
