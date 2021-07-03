@@ -8,7 +8,7 @@ P2APP_OPTIONS = {
     'argv_emulation': True,
     'site_packages': True,
     #'iconfile': 'appicon.icns',
-    'packages': ["schedule", "wxPython",
+    'packages': ["schedule",
                  "appdirs", "cryptography"],
     'plist': {
         'CFBundleName': 'BackupFriend',
@@ -19,7 +19,7 @@ install_requires=[
         "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
 
 if sys.platform == "darwin":
-    install_requires = ["schedule", "appdirs", "cryptography", "pypubsub", "pyyaml"]
+    install_requires = ["wxPython", "schedule", "appdirs", "cryptography", "pypubsub", "pyyaml"]
 
 
 setuptools.setup(
