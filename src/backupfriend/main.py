@@ -46,7 +46,7 @@ def get_os():
 if get_os() == "windows":
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config-windows.yml")
 elif get_os() == "osx":
-    CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "..", "..", "..", "config", "config.yml")
+    CONFIG_PATH_DEFAULT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "config", "config.yml"))
 else:
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config.yml")
 CONFIG_PATH = os.path.join(DATA_PATH, "config", "config.yml")
