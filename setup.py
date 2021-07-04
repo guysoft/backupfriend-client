@@ -8,7 +8,7 @@ P2APP_OPTIONS = {
     'argv_emulation': True,
     'site_packages': True,
     #'iconfile': 'appicon.icns',
-    'packages': ["schedule", "wx._xml", "wx.xml", "wx.lib", "wx.lib.ticker", "wx.xrc", "encodings",
+    'packages': ["schedule", "wx._xml", "wx.xml", "wx.lib", "wx.lib.ticker", "wx.xrc", "wx._xrc", "encodings",
                  "appdirs", "cryptography"],
     'plist': {
         'CFBundleName': 'BackupFriend',
