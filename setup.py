@@ -9,9 +9,10 @@ P2APP_OPTIONS = {
     'site_packages': True,
     #'iconfile': 'appicon.icns',
     'packages': ["schedule", "encodings", "wx",
-                 "appdirs", "cryptography", "rdiff_backup"],
+                 "appdirs", "cryptography"],
     'plist': {
         'CFBundleName': 'BackupFriend',
+        'LSUIElement': True,
     }
 }
 
