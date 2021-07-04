@@ -19,8 +19,21 @@ from shlex import quote
 import webbrowser
 import traceback
 
+def get_os():
+    if sys.platform.startswith("win"):
+        return "windows"
+    elif sys.platform == "darwin":
+        return "osx"
+    elif sys.platform == "linux":
+        return "linux"
+    else:
+        return "unkonwn"
 
-TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
+APP_PATH = os.path.join(os.path.dirname(__file__))
+if get_os() == "osx":
+    APP_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
+TRAY_ICON = os.path.join(APP_PATH, "images", 'icon.png')
 TRAY_TOOLTIP = 'BackupFriend'
 CFG_UPDATE_MSG = "config_update"
 START_JOB_MSG = "job_start"
@@ -33,20 +46,11 @@ debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
 DATA_PATH = get_data_path()
 
-def get_os():
-    if sys.platform.startswith("win"):
-        return "windows"
-    elif sys.platform == "darwin":
-        return "osx"
-    elif sys.platform == "linux":
-        return "linux"
-    else:
-        return "unkonwn"
 
 if get_os() == "windows":
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config-windows.yml")
 elif get_os() == "osx":
-    CONFIG_PATH_DEFAULT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "config", "config.yml"))
+    CONFIG_PATH_DEFAULT = os.path.join(APP_PATH, "config", "config.yml")
 else:
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config.yml")
 CONFIG_PATH = os.path.join(DATA_PATH, "config", "config.yml")
@@ -223,7 +227,7 @@ class MainFrame(wx.Frame):
     """
 
     def __init__(self, parent=None, title=None):
-        self.res = xrc.XmlResource(os.path.join(os.path.dirname(__file__), "res", 'main.xrc'))
+        self.res = xrc.XmlResource(os.path.join(APP_PATH, "res", 'main.xrc'))
 
         wx.Frame.__init__(self, parent=parent, title=title)
         self.SetSize((1000, 700))
