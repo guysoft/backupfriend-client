@@ -31,7 +31,8 @@ def get_os():
 
 APP_PATH = os.path.join(os.path.dirname(__file__))
 if get_os() == "osx":
-    APP_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    if not __file__.endswith(".py"):
+        APP_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 TRAY_ICON = os.path.join(APP_PATH, "images", 'icon.png')
 TRAY_TOOLTIP = 'BackupFriend'
