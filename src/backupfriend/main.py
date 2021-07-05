@@ -157,7 +157,7 @@ class SettingsFrame(wx.Frame):
         self.Centre()
         self.Show()
         if debug:
-            print(self.GetParent().sync_jobs)
+            print(self.sync_jobs)
         ## End Window init stuff ##
 
         self.panel = wx.Panel(self)
@@ -227,10 +227,17 @@ class MainFrame(wx.Frame):
     Class used for creating frames other than the main one
     """
 
-    def __init__(self, parent=None, title=None):
+    def __init__(self, title=None):
+        # Sync control logic
+        self.sync_jobs = []
+        self.add_backups(config["backups"], True)
+        # self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.on_timer()
+        
+        
         self.res = xrc.XmlResource(os.path.join(APP_PATH, "res", 'main.xrc'))
 
-        wx.Frame.__init__(self, parent=parent, title=title)
+        wx.Frame.__init__(self, parent=None, title=title)
         self.SetSize((1000, 700))
         icon = wx.Icon()
         icon.CopyFromBitmap(wx.Bitmap(TRAY_ICON, wx.BITMAP_TYPE_ANY))
@@ -271,6 +278,8 @@ class MainFrame(wx.Frame):
 
         if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
             self.start_first_time_wizard()
+        else:
+            self.Hide()
 
         self.m_log_label = xrc.XRCCTRL(self.panel, 'm_log_label')
 
@@ -278,7 +287,7 @@ class MainFrame(wx.Frame):
 
         ## End Window init stuff ##
 
-        # print(len(self.GetParent().sync_jobs))
+        # print(len(self.sync_jobs))
 
         self.m_console = xrc.XRCCTRL(self.panel, 'm_console')
 
@@ -300,6 +309,157 @@ class MainFrame(wx.Frame):
         pub.subscribe(self.update_end_job, END_JOB_MSG)
 
         # print(wx.geta.sync_jobs)
+        
+    # Sync functions logic
+    def add_backups(self, backups_list, in_config=False):
+        jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
+
+        for backup in backups_list:
+            # Sanity_check
+            if backup["name"] in jobs_names:
+                raise ValueError(f"Job with the name '{backup['name']}' already exists")
+            if backup["name"] == "":
+                raise ValueError("Name can't be empty")
+            if backup["source"] == "":
+                raise ValueError("Source can't be empty")
+            if backup["dest"] == "":
+                raise ValueError("Destination can't be empty")
+
+            backup["key"] = os.path.expanduser(backup["key"])
+            backup["source"] = os.path.expanduser(backup["source"])
+
+            # Fix missing fields from older builds
+            for item in ["server_url", "server_username"]:
+                if item not in backup:
+                    backup[item] = ""
+
+            if not in_config:
+                config["backups"].append(backup)
+            backup_class = Backup(**backup, window=self, test_dummy=False)
+            self.sync_jobs.append(backup_class)
+
+        if not in_config:
+            save_config()
+
+        pub.sendMessage(CFG_UPDATE_MSG)
+
+    def delete_backup(self, backup_name):
+        try:
+            del_index = next(
+                i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+            config["backups"].pop(del_index)
+
+            del_index = next(
+                i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+            self.sync_jobs.pop(del_index)
+        except StopIteration:
+            print(f"Error: no backup named {backup_name}")
+
+        with open(CONFIG_PATH, 'w') as f:
+            yaml.dump(config, f)
+
+        run_dir = os.path.join(DATA_PATH, "jobs_data", backup_name)
+        if os.path.isdir(run_dir):
+            shutil.rmtree(run_dir)
+
+        pub.sendMessage(CFG_UPDATE_MSG)
+
+    def update_backup(self, backup_name, edit_dict):
+        config_index = next(
+            i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
+
+        jobs_index = next(
+            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+
+        for key, val in edit_dict.items():
+            if key=="name":
+                jobs_names = list(map(lambda backup:
+                                        backup.name if backup.name != backup_name else '',
+                                      self.sync_jobs))
+                if val in jobs_names:
+                    raise ValueError(f"'{val}' is alredy exist")
+
+                # rename the run dir
+                old_run_dir = os.path.join(DATA_PATH, "jobs_data",
+                                           config["backups"][config_index]["name"])
+                new_run_dir = os.path.join(DATA_PATH, "jobs_data", val)
+                if os.path.isdir(old_run_dir):
+                    os.rename(old_run_dir, new_run_dir)
+
+            config["backups"][config_index][key] = val
+            self.sync_jobs[jobs_index].__dict__[key] = val
+
+        with open(CONFIG_PATH, 'w') as f:
+            yaml.dump(config, f)
+
+        pub.sendMessage(CFG_UPDATE_MSG)
+
+    def get_backup_by_name(self, backup_name):
+        job_index = next(
+            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
+
+        return self.sync_jobs[job_index]
+
+    def on_timer(self):
+        # wx.CallLater(1000 * 60, self.on_timer)
+        wx.CallLater(1000, self.on_timer)
+        schedule.run_pending()
+        if self.sync_jobs is not None:
+            for sync_job in self.sync_jobs:
+                if sync_job.process_object is not None:
+                    if sync_job.process_object.terminated:
+                        print("terminated")
+                        # TODO: Parse output and mark success False on fail
+                        pub.sendMessage(END_JOB_MSG, name=sync_job.name, success=True)
+
+                        stream = sync_job.process_object.GetInputStream()
+
+                        while stream is not None and stream.CanRead():
+                            text = stream.read()
+                            sync_job.update_log(text)
+
+                            print(text.decode())
+
+                        stream_err = sync_job.process_object.GetErrorStream()
+
+                        while stream_err is not None and stream_err.CanRead():
+                            text = stream_err.read()
+                            sync_job.update_log(text)
+
+                        sync_job.process_object = None
+                    else:
+                        try:
+                            stream = sync_job.process_object.GetInputStream()
+
+                            while stream is not None and stream.CanRead():
+                                text = stream.read()
+                                sync_job.update_log(text)
+
+                                print(text.decode())
+
+                            stream_err = sync_job.process_object.GetErrorStream()
+
+                            while stream_err is not None and stream_err.CanRead():
+                                text = stream_err.read()
+                                sync_job.update_log(text)
+
+                                print(text.decode())
+                        except RuntimeError as e:
+                            print(e)
+                            # import code;
+                            # code.interact(local=dict(globals(), **locals()))
+
+                # print("Done idle")
+
+    def get_job_by_name(self, name):
+        for job in self.sync_jobs:
+            if debug:
+                print(job.name)
+                print(name)
+            if job.name == name:
+                return job
+        return
+    # End sync functions logic
 
     def select_backup(self, event):
         item = event.GetItem()
@@ -324,7 +484,7 @@ class MainFrame(wx.Frame):
     def run_job(self, event):
         if debug:
             print("Running: " + str(self.current_job))
-        job = self.GetParent().get_job_by_name(self.current_job)
+        job = self.get_job_by_name(self.current_job)
         if not job.running():
             job.run_backup()
         else:
@@ -341,7 +501,7 @@ class MainFrame(wx.Frame):
         return
 
     def go_to_server(self, event):
-        job = self.GetParent().get_job_by_name(self.current_job)
+        job = self.get_job_by_name(self.current_job)
         print(job.server_url)
         print(job.server_username)
         dest = job.dest.split("::")[1]
@@ -370,7 +530,7 @@ class MainFrame(wx.Frame):
     def display_job(self, job_name):
         self.m_list_runs.DeleteAllItems()
         self.m_console.SetValue("")
-        job = self.GetParent().get_job_by_name(job_name)
+        job = self.get_job_by_name(job_name)
 
         for i, file_name in enumerate(job.get_log_files()):
             self.m_list_runs.InsertItem(i, job.name)
@@ -384,14 +544,14 @@ class MainFrame(wx.Frame):
 
     def display_run(self, job_name, run_name):
         self.m_console.SetValue("")
-        log = self.GetParent().get_job_by_name(job_name).get_log(run_name)
+        log = self.get_job_by_name(job_name).get_log(run_name)
 
         self.m_console.SetValue(log)
         return
 
     def update_list_sync(self):
         items_num = self.m_list_syncs.GetItemCount()
-        sync_jobs_list = list(self.GetParent().sync_jobs)
+        sync_jobs_list = list(self.sync_jobs)
         self.m_list_syncs.DeleteAllItems()
 
         for i, job in enumerate(sync_jobs_list):
@@ -421,7 +581,7 @@ class MainFrame(wx.Frame):
         try:
             name_in_list = self.m_list_syncs.GetItem(selected_item, name_col).GetText()
 
-            job = self.GetParent().get_job_by_name(name)
+            job = self.get_job_by_name(name)
 
             # Add item to list if selected
             item_count = len(job.get_log_files())
@@ -472,6 +632,8 @@ class MainFrame(wx.Frame):
             print("open settings")
         if get_os() == "windows":
             os.system("notepad " + quote(CONFIG_PATH))
+        elif get_os() == "osx":
+            os.system("open " + quote(CONFIG_PATH))
         else:
             os.system("xdg-open '" + CONFIG_PATH + "'")
         return
@@ -479,8 +641,8 @@ class MainFrame(wx.Frame):
     def onClose(self, event):
         print("closing")
         # TODO - also delete from memmory
-        # self.Hide()
-        self.Destroy()
+        self.Hide()
+        # self.Destroy()
         # print(self)
 
 
@@ -525,19 +687,12 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
     def on_open_main(self, event):
         if debug:
             print('Opening Main')
-        if not hasattr(self, 'main_frame'):
-
-            # self.main_frame = res.LoadObject(self.frame, "MyFrame1", "wxFrame")
-            self.main_frame = MainFrame(self.frame, "Main")
-        else:
-            if not self.main_frame:
-                print("closed")
-                self.main_frame = MainFrame(self.frame, "Main")
-            print(dir(self.main_frame))
+        self.frame.Raise()
 
     def on_exit(self, event):
         wx.CallAfter(self.Destroy)
         self.frame.Close()
+        self.frame.Destroy()
 
 
 class SyncProcess(wx.Process):
@@ -737,166 +892,6 @@ class Backup:
         return
 
 
-class MainInvisibleWindow(wx.Frame):
-    def __init__(self):
-        wx.Frame.__init__(self, parent=None)
-
-        self.sync_jobs = []
-        self.add_backups(config["backups"], True)
-        # self.Bind(wx.EVT_IDLE, self.OnIdle)
-
-        self.on_timer()
-
-    def add_backups(self, backups_list, in_config=False):
-        jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
-
-        for backup in backups_list:
-            # Sanity_check
-            if backup["name"] in jobs_names:
-                raise ValueError(f"Job with the name '{backup['name']}' already exists")
-            if backup["name"] == "":
-                raise ValueError("Name can't be empty")
-            if backup["source"] == "":
-                raise ValueError("Source can't be empty")
-            if backup["dest"] == "":
-                raise ValueError("Destination can't be empty")
-
-            backup["key"] = os.path.expanduser(backup["key"])
-            backup["source"] = os.path.expanduser(backup["source"])
-
-            # Fix missing fields from older builds
-            for item in ["server_url", "server_username"]:
-                if item not in backup:
-                    backup[item] = ""
-
-            if not in_config:
-                config["backups"].append(backup)
-            backup_class = Backup(**backup, window=self, test_dummy=False)
-            self.sync_jobs.append(backup_class)
-
-        if not in_config:
-            save_config()
-
-        pub.sendMessage(CFG_UPDATE_MSG)
-
-    def delete_backup(self, backup_name):
-        try:
-            del_index = next(
-                i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
-            config["backups"].pop(del_index)
-
-            del_index = next(
-                i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
-            self.sync_jobs.pop(del_index)
-        except StopIteration:
-            print(f"Error: no backup named {backup_name}")
-
-        with open(CONFIG_PATH, 'w') as f:
-            yaml.dump(config, f)
-
-        run_dir = os.path.join(DATA_PATH, "jobs_data", backup_name)
-        if os.path.isdir(run_dir):
-            shutil.rmtree(run_dir)
-
-        pub.sendMessage(CFG_UPDATE_MSG)
-
-    def update_backup(self, backup_name, edit_dict):
-        config_index = next(
-            i for i, elem in enumerate(config["backups"]) if elem["name"] == backup_name)
-
-        jobs_index = next(
-            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
-
-        for key, val in edit_dict.items():
-            if key=="name":
-                jobs_names = list(map(lambda backup:
-                                        backup.name if backup.name != backup_name else '',
-                                      self.sync_jobs))
-                if val in jobs_names:
-                    raise ValueError(f"'{val}' is alredy exist")
-
-                # rename the run dir
-                old_run_dir = os.path.join(DATA_PATH, "jobs_data",
-                                           config["backups"][config_index]["name"])
-                new_run_dir = os.path.join(DATA_PATH, "jobs_data", val)
-                if os.path.isdir(old_run_dir):
-                    os.rename(old_run_dir, new_run_dir)
-
-            config["backups"][config_index][key] = val
-            self.sync_jobs[jobs_index].__dict__[key] = val
-
-        with open(CONFIG_PATH, 'w') as f:
-            yaml.dump(config, f)
-
-        pub.sendMessage(CFG_UPDATE_MSG)
-
-    def get_backup_by_name(self, backup_name):
-        job_index = next(
-            i for i, elem in enumerate(self.sync_jobs) if elem.name == backup_name)
-
-        return self.sync_jobs[job_index]
-
-    def on_timer(self):
-        # wx.CallLater(1000 * 60, self.on_timer)
-        wx.CallLater(1000, self.on_timer)
-        schedule.run_pending()
-        if self.sync_jobs is not None:
-            for sync_job in self.sync_jobs:
-                if sync_job.process_object is not None:
-                    if sync_job.process_object.terminated:
-                        print("terminated")
-                        # TODO: Parse output and mark success False on fail
-                        pub.sendMessage(END_JOB_MSG, name=sync_job.name, success=True)
-
-                        stream = sync_job.process_object.GetInputStream()
-
-                        while stream is not None and stream.CanRead():
-                            text = stream.read()
-                            sync_job.update_log(text)
-
-                            print(text.decode())
-
-                        stream_err = sync_job.process_object.GetErrorStream()
-
-                        while stream_err is not None and stream_err.CanRead():
-                            text = stream_err.read()
-                            sync_job.update_log(text)
-
-                        sync_job.process_object = None
-                    else:
-                        try:
-                            stream = sync_job.process_object.GetInputStream()
-
-                            while stream is not None and stream.CanRead():
-                                text = stream.read()
-                                sync_job.update_log(text)
-
-                                print(text.decode())
-
-                            stream_err = sync_job.process_object.GetErrorStream()
-
-                            while stream_err is not None and stream_err.CanRead():
-                                text = stream_err.read()
-                                sync_job.update_log(text)
-
-                                print(text.decode())
-                        except RuntimeError as e:
-                            print(e)
-                            # import code;
-                            # code.interact(local=dict(globals(), **locals()))
-
-                # print("Done idle")
-
-    def get_job_by_name(self, name):
-        for job in self.sync_jobs:
-            if debug:
-                print(job.name)
-                print(name)
-            if job.name == name:
-                return job
-        return
-
-
 ##    def OnIdle(self, evt):
 ##        if self.sync_jobs is not None:
 ##            for sync_job in self.sync_jobs:
@@ -951,7 +946,7 @@ class App(wx.App):
 
         if debug:
             print("Starting App OnInit")
-        frame = MainInvisibleWindow()
+        frame = MainFrame("BackupFriend")
         self.SetTopWindow(frame)
         taskbar = TaskBarIcon(frame)
 

@@ -163,13 +163,13 @@ class AddJobDialog(AbstractJobDialog):
         return wx.Dialog.ShowModal(self, *args, **kw)
 
     def updateFunction(self, backup_dict):
-        self.GetParent().GetParent().add_backups([backup_dict])
+        self.GetParent().add_backups([backup_dict])
 
 
 class EditJobDialog(AbstractJobDialog):
     def ShowModal(self, *args, **kw):
-        self.job_name = self.GetParent().current_job
-        self.backup_to_update = self.GetParent().GetParent().get_backup_by_name(
+        self.job_name = self.current_job
+        self.backup_to_update = self.GetParent().get_backup_by_name(
             self.job_name)
 
         xrc.XRCCTRL(self, 'm_name').SetValue(self.backup_to_update.name)
@@ -188,7 +188,7 @@ class EditJobDialog(AbstractJobDialog):
         return wx.Dialog.ShowModal(self, *args, **kw)
 
     def updateFunction(self, backup_dict):
-        self.GetParent().GetParent().update_backup(self.job_name, backup_dict)
+        self.GetParent().update_backup(self.job_name, backup_dict)
 
 
 class DeleteJobDialog(wx.Dialog):
@@ -205,7 +205,7 @@ class DeleteJobDialog(wx.Dialog):
         return wx.Dialog.ShowModal(self, *args, **kw)
 
     def _delete_job(self, event):
-        self.GetParent().GetParent().delete_backup(self.job_name)
+        self.GetParent().delete_backup(self.job_name)
         self.Close()
 
     def _close(self, event):
