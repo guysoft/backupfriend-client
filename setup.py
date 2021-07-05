@@ -9,13 +9,13 @@ P2APP_OPTIONS = {
     'site_packages': True,
     #'iconfile': 'appicon.icns',
     'packages': ["schedule", "encodings", "wx",
-                 "appdirs", "cryptography"],
+                 "appdirs", "cryptography", "rdiff_backup"],
     'plist': {
         'CFBundleName': 'BackupFriend',
         'LSUIElement': True,
-    }
+    },
+    'extra_scripts': ["/usr/local/bin/rdiff-backup"]
 }
-
 install_requires=[
         "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
 

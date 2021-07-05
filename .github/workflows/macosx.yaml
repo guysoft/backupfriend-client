@@ -19,16 +19,18 @@ jobs:
           brew install wxpython
           brew install libyaml
           brew upgrade
-      - name: Display Brew pahth
+      - name: Display Brew path
         run: brew --prefix
       - name: which python3
         run: which python3
       - name: Display Python version
         run: python3 -c "import sys; print(sys.version)"
-      - name: Install pip
+      - name: Install py2app
         run: python3 -m pip install py2app
       - name: upgrade pip
         run: python3 -m pip install --upgrade pip
+      - name: install rdiff-backup via pip
+        run: python3 -m pip install rdiff-backup
       - name: install requirements.txt
         run: python3 -m pip install -r requirements.txt
       - name: Build app
