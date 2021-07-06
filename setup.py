@@ -15,6 +15,7 @@ P2APP_OPTIONS = {
         'CFBundleDisplayName': 'BackupFriend',
         'LSUIElement': False,
     },
+    'iconfile': 'src/backupfriend/images/icon.icns',
     'extra_scripts': ["/usr/local/bin/rdiff-backup"]
 }
 install_requires=[
