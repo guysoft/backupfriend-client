@@ -5,14 +5,14 @@ with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 P2APP_OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
     'site_packages': True,
     #'iconfile': 'appicon.icns',
     'packages': ["schedule", "encodings", "wx",
                  "appdirs", "cryptography", "rdiff_backup"],
     'plist': {
         'CFBundleName': 'BackupFriend',
-        'LSUIElement': False,
+        'LSUIElement': True,
     },
     'extra_scripts': ["/usr/local/bin/rdiff-backup"]
 }
