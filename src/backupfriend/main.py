@@ -549,9 +549,12 @@ class MainFrame(wx.Frame):
 
     def display_run(self, job_name, run_name):
         self.m_console.SetValue("")
-        log = self.get_job_by_name(job_name).get_log(run_name)
-
-        self.m_console.SetValue(log)
+        job = self.get_job_by_name(job_name)
+        if job is not None:
+            log = job.get_log(run_name)
+            self.m_console.SetValue(log)
+        else:
+            self.m_console.SetValue("Log not generated")
         return
 
     def update_list_sync(self):
