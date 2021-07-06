@@ -12,7 +12,8 @@ P2APP_OPTIONS = {
                  "appdirs", "cryptography", "rdiff_backup"],
     'plist': {
         'CFBundleName': 'BackupFriend',
-        'LSUIElement': True,
+        'CFBundleDisplayName': 'BackupFriend',
+        'LSUIElement': False,
     },
     'extra_scripts': ["/usr/local/bin/rdiff-backup"]
 }
