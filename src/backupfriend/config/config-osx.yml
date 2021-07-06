@@ -3,7 +3,7 @@ main:
   # bin: "echo"
 backups:
   - name: "example"
-    source: "/tmp"
+    source: "/private/tmp"
     dest: "user@backupfriend.local::/backup/usb/example"
     port: "8022"
     key: "~/.backupfriend/id_rsa"
