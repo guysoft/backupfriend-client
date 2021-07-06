@@ -168,7 +168,7 @@ class AddJobDialog(AbstractJobDialog):
 
 class EditJobDialog(AbstractJobDialog):
     def ShowModal(self, *args, **kw):
-        self.job_name = self.current_job
+        self.job_name = self.GetParent().current_job
         self.backup_to_update = self.GetParent().get_backup_by_name(
             self.job_name)
 

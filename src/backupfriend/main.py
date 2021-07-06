@@ -51,7 +51,7 @@ DATA_PATH = get_data_path()
 if get_os() == "windows":
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config-windows.yml")
 elif get_os() == "osx":
-    CONFIG_PATH_DEFAULT = os.path.join(APP_PATH, "config", "config.yml")
+    CONFIG_PATH_DEFAULT = os.path.join(APP_PATH, "config", "config-osx.yml")
 else:
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config.yml")
 CONFIG_PATH = os.path.join(DATA_PATH, "config", "config.yml")
@@ -276,9 +276,14 @@ class MainFrame(wx.Frame):
         self.Centre()
         self.Show()
 
-        if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
+        def is_first_run():
+            return not os.path.isfile(os.path.join(DATA_PATH, "id_rsa"))
+
+        if is_first_run():
             self.start_first_time_wizard()
-        else:
+
+        
+        if not is_first_run():
             self.Hide()
 
         self.m_log_label = xrc.XRCCTRL(self.panel, 'm_log_label')
@@ -640,7 +645,6 @@ class MainFrame(wx.Frame):
 
     def onClose(self, event):
         print("closing")
-        # TODO - also delete from memmory
         self.Hide()
         # self.Destroy()
         # print(self)
@@ -687,7 +691,9 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
     def on_open_main(self, event):
         if debug:
             print('Opening Main')
+        self.frame.Show()
         self.frame.Raise()
+
 
     def on_exit(self, event):
         wx.CallAfter(self.Destroy)
@@ -950,8 +956,8 @@ class App(wx.App):
         self.SetTopWindow(frame)
         taskbar = TaskBarIcon(frame)
 
-        if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
-            taskbar.on_open_main(None)
+        # if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
+        #     taskbar.on_open_main(None)
         # frame2 = MainFrame(frame, "Main")
 
         return True
