@@ -867,7 +867,7 @@ class Backup:
         else:
             cmd = [bin_path,
                    "-v6",
-                   " --remote-schema 'ssh -p " + str(self.port) + " -o StrictHostKeyChecking=no -i " + self.key + " %s rdiff-backup --server'",
+                   " --remote-schema 'ssh -p " + str(self.port) + " -o StrictHostKeyChecking=no -i \"" + self.key + "\" %s rdiff-backup --server'",
                    "--", quote(self.source), quote(self.dest)]
             command = " ".join(cmd)
 
