@@ -1,5 +1,5 @@
 main:
-  bin: /usr/local/bin/rdiff-backup
+  bin: __app_bin_path__/rdiff-backup
   # bin: "echo"
 backups:
   - name: "example"

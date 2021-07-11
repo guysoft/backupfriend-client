@@ -30,9 +30,13 @@ def get_os():
         return "unkonwn"
 
 APP_PATH = os.path.join(os.path.dirname(__file__))
+
+# OS X app bin path.
+APP_BIN_PATH = None
 if get_os() == "osx":
     if not __file__.endswith(".py"):
         APP_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        APP_BIN_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "MacOS"))
 
 TRAY_ICON = os.path.join(APP_PATH, "images", 'icon.png')
 TRAY_TOOLTIP = 'BackupFriend'
@@ -854,6 +858,12 @@ class Backup:
             # ssh_path = r'C:\Users\user\Desktop\backupfriend-client\ssh.exe'            
             ssh_path = ssh_path.replace("__package_path__", resource_path())
             bin_path = bin_path.replace("__package_path__", resource_path())
+            
+            # Handle in mac first run from app, or first run from python script
+            if APP_BIN_PATH is not None:
+                bin_path = bin_path.replace("__app_bin_path__", APP_BIN_PATH)
+            else:
+                bin_path = bin_path.replace("__app_bin_path__", "/usr/local/bin")
         return bin_path, ssh_path
     
     def run_backup(self):
