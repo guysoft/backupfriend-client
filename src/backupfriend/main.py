@@ -77,11 +77,16 @@ if "ssh" not in config["main"] and not get_os() == "windows":
     save_config()
 
 def _run_command(command, **kwargs):
+    is_timeout = False
     if debug:
         print(" ".join(command))
     p = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
-    stdout = p.stdout.read()
-    stderr = p.stderr.read()
+    try:
+        stdout, stderr = p.communicate(timeout=5)
+    except subprocess.TimeoutExpired as e:
+        p.kill()
+        stdout,stderr = p.communicate()
+        is_timeout = True
     try:
         stdout = stdout.decode("utf-8")
     except UnicodeDecodeError as e:
@@ -98,7 +103,7 @@ def _run_command(command, **kwargs):
         print(e)
         stderr = ""
 
-    return_value = [stdout, stderr]
+    return_value = [stdout, stderr, is_timeout]
     return return_value
 
 
@@ -807,16 +812,19 @@ class Backup:
         _, ssh_path = self.get_bin_ssh_path()
         
         hostname_and_user = self.dest.split("::")[0]
+        hostname = hostname_and_user.split("@")[1]
         dest_path = self.dest.split("::")[1]
 
         command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "whoami"]
 
         try:
-            stdout, stderror = _run_command(command)
+            stdout, stderror, is_timeout = _run_command(command)
+            if is_timeout:
+                return "Failed to conenct to server: " + str(hostname)
             if stderror != "":
                 return stderror
         except Exception as e:
-            return "Got exception when runnign command: " + str(e)
+            return "Got exception when running command: " + str(e)
         
 
         # At this point we have a connection that works, the dest folder might be missing
@@ -824,11 +832,13 @@ class Backup:
         command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "mkdir -p " + dest_path]
 
         try:
-            stdout, stderror = _run_command(command)
+            stdout, stderror, is_timeout = _run_command(command)
+            if is_timeout:
+                return "Failed to conenct to server: " + str(hostname)
             if stderror != "":
                 return "Folder on server does not exist or has no permission: " + dest_path
         except Exception as e:
-            return "Got exception when runnign command: " + str(e)
+            return "Got exception when running command: " + str(e)
 
         return "Connection succeeded"
     
