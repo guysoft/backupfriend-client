@@ -1066,7 +1066,7 @@
                 </object>
             </object>
         </object>
-        <object class="Wizard" expanded="0">
+        <object class="Wizard" expanded="1">
             <property name="bg"></property>
             <property name="bitmap"></property>
             <property name="center">wxBOTH</property>
@@ -1175,12 +1175,12 @@
                             <property name="window_extra_style"></property>
                             <property name="window_name"></property>
                             <property name="window_style"></property>
-                            <property name="wrap">-1</property>
+                            <property name="wrap">250</property>
                         </object>
                     </object>
                 </object>
             </object>
-            <object class="WizardPageSimple" expanded="0">
+            <object class="WizardPageSimple" expanded="1">
                 <property name="bg"></property>
                 <property name="bitmap"></property>
                 <property name="context_help"></property>
@@ -1403,7 +1403,7 @@
                     </object>
                 </object>
             </object>
-            <object class="WizardPageSimple" expanded="0">
+            <object class="WizardPageSimple" expanded="1">
                 <property name="bg"></property>
                 <property name="bitmap"></property>
                 <property name="context_help"></property>
@@ -1424,7 +1424,7 @@
                 <property name="window_extra_style"></property>
                 <property name="window_name"></property>
                 <property name="window_style"></property>
-                <object class="wxBoxSizer" expanded="0">
+                <object class="wxBoxSizer" expanded="1">
                     <property name="minimum_size"></property>
                     <property name="name">bSizer81</property>
                     <property name="orient">wxVERTICAL</property>
