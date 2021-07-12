@@ -663,8 +663,9 @@ class MainFrame(wx.Frame):
 
 
 class TaskBarIcon(wx.adv.TaskBarIcon):
-    def __init__(self, frame):
+    def __init__(self, frame, app):
         self.frame = frame
+        self.app = app
         self.frame.SetLayoutDirection(wx.Layout_LeftToRight)
         super(TaskBarIcon, self).__init__()
         self.set_icon(TRAY_ICON)
@@ -705,6 +706,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             print('Opening Main')
         self.frame.Show()
         self.frame.Raise()
+        self.app.SetTopWindow(self.frame)
 
 
     def on_exit(self, event):
@@ -977,7 +979,7 @@ class App(wx.App):
             print("Starting App OnInit")
         frame = MainFrame("BackupFriend")
         self.SetTopWindow(frame)
-        taskbar = TaskBarIcon(frame)
+        taskbar = TaskBarIcon(frame, self)
 
         # if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
         #     taskbar.on_open_main(None)
