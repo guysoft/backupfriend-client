@@ -6,7 +6,7 @@ backups:
     source: "/private/tmp"
     dest: "user@backupfriend.local::/backup/usb/example"
     port: "8022"
-    key: "~/.backupfriend/id_rsa"
+    key: "__user_data__\\id_rsa"
     server_username: admin
     server_url: http://backupfriend
     every: "daily"

@@ -724,6 +724,14 @@ class SyncProcess(wx.Process):
         self.terminated = True
 
 
+def expand_user_data(path):
+    if "__user_data__" in path:
+        path = path.replace("__user_data__", "")
+        if path.startswith("\\"):
+            path = path[1:]
+        path = os.path.join(DATA_PATH, path)
+    return path
+
 @dataclass
 class Backup:
     name: str
@@ -749,11 +757,7 @@ class Backup:
     def __post_init__(self):
         self.process_object = None
         self.pid = None
-        if "__user_data__" in self.key:
-            self.key = self.key.replace("__user_data__", "")
-            if self.key.startswith("\\"):
-                self.key = self.key[1:]
-            self.key = os.path.join(DATA_PATH, self.key)
+        self.key = expand_user_data(self.key)
         
         if not self.test_dummy and self.every == "daily":
             # schedule.every().seconds.do(
@@ -861,6 +865,7 @@ class Backup:
             ssh_path = ssh_path.replace("__package_path__", resource_path())
             bin_path = bin_path.replace("__package_path__", resource_path())
             
+        elif get_os() == "osx":
             # Handle in mac first run from app, or first run from python script
             if APP_BIN_PATH is not None:
                 bin_path = bin_path.replace("__app_bin_path__", APP_BIN_PATH)
