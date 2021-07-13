@@ -18,6 +18,15 @@ Screenshots
 .. :scale: 25https://raw.githubusercontent.com/guysoft/backupfriend-client/master/media/backfriend-client-screenshot.png %
 .. :alt: Main window
 
+Donate
+------
+BackupFriend is 100% free and open source and maintained by Guy Sheffer. If its helping your life, your organisation or makes you happy, please consider making a donation. It means I can code more and worry less about my balance. Any amount counts.
+
+|paypal|
+
+.. |paypal| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
+   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=26VJ9MSBH3V3W&source=url
+
 Install
 =======
 
