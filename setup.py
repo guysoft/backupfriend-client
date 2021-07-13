@@ -1,5 +1,6 @@
 import setuptools
 import sys
+from src.backupfriend.__init__ import __version__ as version
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
@@ -27,7 +28,7 @@ if sys.platform == "darwin":
 
 setuptools.setup(
     name="backupfriend",
-    version="0.1.0",
+    version=version,
     description="Read the latest Real Python tutorials",
     long_description=long_description,
     long_description_content_type="text/x-rst",

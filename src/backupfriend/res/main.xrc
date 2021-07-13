@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
 	<object class="wxMenuBar" name="m_menubar1">
-		<object class="wxMenu" name="File">
+		<object class="wxMenu" name="m_File">
 			<label>File</label>
 			<object class="wxMenuItem" name="m_settings">
 				<label>Settings</label>
@@ -17,6 +17,17 @@
 			</object>
 			<object class="wxMenuItem" name="m_exit">
 				<label>Exit</label>
+				<help></help>
+			</object>
+		</object>
+		<object class="wxMenu" name="m_help">
+			<label>Help</label>
+			<object class="wxMenuItem" name="m_check_updates">
+				<label>Check for updates</label>
+				<help></help>
+			</object>
+			<object class="wxMenuItem" name="m_about">
+				<label>About BackupFriend client</label>
 				<help></help>
 			</object>
 		</object>
@@ -803,6 +814,107 @@
 							</object>
 						</object>
 					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+	<object class="wxDialog" name="about_dialog" subclass="backupfriend.sub.AboutDialog">
+		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxSTAY_ON_TOP</style>
+		<size>800,800</size>
+		<title>About Backupfriend Client</title>
+		<centered>1</centered>
+		<object class="wxBoxSizer">
+			<minsize>700,900</minsize>
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_CENTER|wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticBitmap" name="m_logo">
+					<bitmap />
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_CENTER|wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="m_title">
+					<font>
+						<size>16</size>
+						<family>swiss</family>
+						<style>normal</style>
+						<weight>bold</weight>
+						<underlined>0</underlined>
+						<face>Sans</face>
+					</font>
+					<label>BackupFriend Client</label>
+					<wrap>-1</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag></flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxHORIZONTAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_Title">
+							<label>BackupFriend Client version: </label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_version">
+							<label>Unknown</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="m_description">
+					<label>This is graphical Desktop application for BackupFriend. A tool that lets you place a Raspberry Pi with a hard drive in your friends house or family, or a server. And lets you sync your folders tracking history changes.</label>
+					<wrap>600</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="m_staticText40">
+					<label>BackupFriend is 100% free and open source and maintained by Guy Sheffer. If its helping your life, your organisation or makes you happy, please consider making a donation. It means I can code more and worry less about my balance. Any amount counts.</label>
+					<wrap>600</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_CENTER|wxALL</flag>
+				<border>5</border>
+				<object class="wxHyperlinkCtrl" name="m_hyperlink1">
+					<label>BackupFriend Client website</label>
+					<url>https://github.com/guysoft/backupfriend-client</url>
+					<style>wxHL_DEFAULT_STYLE</style>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_RIGHT|wxALL</flag>
+				<border>5</border>
+				<object class="wxButton" name="m_close">
+					<label>Close</label>
+					<default>0</default>
+					<auth_needed>0</auth_needed>
+					<markup>0</markup>
+					<bitmap />
 				</object>
 			</object>
 		</object>

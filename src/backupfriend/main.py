@@ -262,6 +262,8 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.exit, id=xrc.XRCID('m_exit'))
         self.Bind(wx.EVT_MENU, self.show_public_key, id=xrc.XRCID('m_show_public_key'))
         self.Bind(wx.EVT_MENU, self.start_first_time_wizard, id=xrc.XRCID('m_generate_keys'))
+        self.Bind(wx.EVT_MENU, self.check_updates, id=xrc.XRCID('m_check_updates'))
+        self.Bind(wx.EVT_MENU, self.show_about, id=xrc.XRCID('m_about'))
 
         self.Bind(wx.EVT_MENU, self.open_settings, id=xrc.XRCID('m_settings'))
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.select_backup, id=xrc.XRCID('m_list_syncs'))
@@ -632,6 +634,15 @@ class MainFrame(wx.Frame):
     def show_public_key(self, event):
         dialog = self.res.LoadDialog(self, 'show_key_dialog')
         dialog.ShowModal()
+        return
+    
+    def show_about(self, event):
+        dialog = self.res.LoadDialog(self, 'about_dialog')
+        dialog.ShowModal()
+        return
+    
+    def check_updates(self, event):
+        print("Implement check updates")
         return
 
     def show_edit_dialog(self, event):

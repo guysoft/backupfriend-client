@@ -6,7 +6,8 @@ from wx import xrc
 from backupfriend.make_ssh_key import generate_keys
 from backupfriend.common import get_data_path
 from abc import ABC, abstractmethod
-from backupfriend.main import Backup
+from backupfriend.main import Backup, TRAY_ICON
+from backupfriend import __version__ as VERSION
 
 DATA_PATH = get_data_path()
 
@@ -210,3 +211,23 @@ class DeleteJobDialog(wx.Dialog):
 
     def _close(self, event):
         self.Close()
+
+
+class AboutDialog(wx.Dialog):
+    def __init__(self, *args, **kw):
+        wx.Dialog.__init__(self, *args, **kw)
+
+    def ShowModal(self, *args, **kw):
+        xrc.XRCCTRL(self, "m_version").SetLabel(VERSION)
+        xrc.XRCCTRL(self, "m_logo").SetBitmap(wx.Bitmap(TRAY_ICON))
+        self.Bind(wx.EVT_BUTTON, self._close, id=xrc.XRCID('m_close'))
+
+        return wx.Dialog.ShowModal(self, *args, **kw)
+
+    def _delete_job(self, event):
+        self.GetParent().delete_backup(self.job_name)
+        self.Close()
+
+    def _close(self, event):
+        self.Close()
+        
