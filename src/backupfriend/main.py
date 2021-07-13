@@ -865,7 +865,7 @@ class Backup:
             ssh_path = ssh_path.replace("__package_path__", resource_path())
             bin_path = bin_path.replace("__package_path__", resource_path())
             
-        elif get_os() == "osx":
+        elif get_os() == "osx" or get_os() == "linux":
             # Handle in mac first run from app, or first run from python script
             if APP_BIN_PATH is not None:
                 bin_path = bin_path.replace("__app_bin_path__", APP_BIN_PATH)
