@@ -1,9 +1,9 @@
 main:
-  bin: __app_bin_path__/rdiff-backup
+  bin: "__app_bin_path__/rdiff-backup"
   # bin: "echo"
 backups:
   - name: "example"
-    source: "/tmp"
+    source: "/private/tmp"
     dest: "user@backupfriend::/backup/media/usb/example"
     port: "8022"
     key: "__user_data__/id_rsa"

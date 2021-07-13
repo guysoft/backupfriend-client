@@ -1,7 +1,29 @@
 import setuptools
+import sys
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
+
+P2APP_OPTIONS = {
+    'argv_emulation': False,
+    'site_packages': True,
+    #'iconfile': 'appicon.icns',
+    'packages': ["schedule", "encodings", "wx",
+                 "appdirs", "cryptography", "rdiff_backup"],
+    'plist': {
+        'CFBundleName': 'BackupFriend',
+        'CFBundleDisplayName': 'BackupFriend',
+        'LSUIElement': False,
+    },
+    'iconfile': 'src/backupfriend/images/icon.icns',
+    'extra_scripts': ["/usr/local/bin/rdiff-backup"]
+}
+install_requires=[
+        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
+
+if sys.platform == "darwin":
+    install_requires = ["wxPython", "schedule", "appdirs", "cryptography", "pypubsub", "pyyaml"]
+
 
 setuptools.setup(
     name="backupfriend",
@@ -24,12 +46,12 @@ setuptools.setup(
         "": "src",
     },
     data_files=[('images', ['src/backupfriend/images/icon.png']),
-                ('config', ['src/backupfriend/config/config.yml']),
+                ('config', ['src/backupfriend/config/config.yml', 'src/backupfriend/config/config-osx.yml']),
                 ('res', ['src/backupfriend/res/main.xrc'])],
     include_package_data=True,
-    install_requires=[
-        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"',
-        "appdirs", "rdiff-backup", "cryptography", "pypubsub"
-    ],
+    install_requires=install_requires,
     entry_points={"console_scripts": ["backupfriend=backupfriendclient:run"]},
+    app=['src/backupfriend-client.py'],
+    options={'py2app': P2APP_OPTIONS},
+    setup_requires=['py2app'],
 )

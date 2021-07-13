@@ -19,8 +19,26 @@ from shlex import quote
 import webbrowser
 import traceback
 
+def get_os():
+    if sys.platform.startswith("win"):
+        return "windows"
+    elif sys.platform == "darwin":
+        return "osx"
+    elif sys.platform == "linux":
+        return "linux"
+    else:
+        return "unkonwn"
 
-TRAY_ICON = os.path.join(os.path.dirname(__file__), "images", 'icon.png')
+APP_PATH = os.path.join(os.path.dirname(__file__))
+
+# OS X app bin path.
+APP_BIN_PATH = None
+if get_os() == "osx":
+    if not __file__.endswith(".py"):
+        APP_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        APP_BIN_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "MacOS"))
+
+TRAY_ICON = os.path.join(APP_PATH, "images", 'icon.png')
 TRAY_TOOLTIP = 'BackupFriend'
 CFG_UPDATE_MSG = "config_update"
 START_JOB_MSG = "job_start"
@@ -33,18 +51,11 @@ debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
 DATA_PATH = get_data_path()
 
-def get_os():
-    if sys.platform.startswith("win"):
-        return "windows"
-    elif sys.platform == "darwin":
-        return "osx"
-    elif sys.platform == "linux":
-        return "linux"
-    else:
-        return "unkonwn"
 
 if get_os() == "windows":
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config-windows.yml")
+elif get_os() == "osx":
+    CONFIG_PATH_DEFAULT = os.path.join(APP_PATH, "config", "config-osx.yml")
 else:
     CONFIG_PATH_DEFAULT = os.path.join(os.path.dirname(__file__), "config", "config.yml")
 CONFIG_PATH = os.path.join(DATA_PATH, "config", "config.yml")
@@ -70,11 +81,16 @@ if "ssh" not in config["main"] and not get_os() == "windows":
     save_config()
 
 def _run_command(command, **kwargs):
+    is_timeout = False
     if debug:
         print(" ".join(command))
     p = subprocess.Popen(command, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
-    stdout = p.stdout.read()
-    stderr = p.stderr.read()
+    try:
+        stdout, stderr = p.communicate(timeout=5)
+    except subprocess.TimeoutExpired as e:
+        p.kill()
+        stdout,stderr = p.communicate()
+        is_timeout = True
     try:
         stdout = stdout.decode("utf-8")
     except UnicodeDecodeError as e:
@@ -91,7 +107,7 @@ def _run_command(command, **kwargs):
         print(e)
         stderr = ""
 
-    return_value = [stdout, stderr]
+    return_value = [stdout, stderr, is_timeout]
     return return_value
 
 
@@ -150,7 +166,7 @@ class SettingsFrame(wx.Frame):
         self.Centre()
         self.Show()
         if debug:
-            print(self.GetParent().sync_jobs)
+            print(self.sync_jobs)
         ## End Window init stuff ##
 
         self.panel = wx.Panel(self)
@@ -220,10 +236,17 @@ class MainFrame(wx.Frame):
     Class used for creating frames other than the main one
     """
 
-    def __init__(self, parent=None, title=None):
-        self.res = xrc.XmlResource(os.path.join(os.path.dirname(__file__), "res", 'main.xrc'))
+    def __init__(self, title=None):
+        # Sync control logic
+        self.sync_jobs = []
+        self.add_backups(config["backups"], True)
+        # self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.on_timer()
+        
+        
+        self.res = xrc.XmlResource(os.path.join(APP_PATH, "res", 'main.xrc'))
 
-        wx.Frame.__init__(self, parent=parent, title=title)
+        wx.Frame.__init__(self, parent=None, title=title)
         self.SetSize((1000, 700))
         icon = wx.Icon()
         icon.CopyFromBitmap(wx.Bitmap(TRAY_ICON, wx.BITMAP_TYPE_ANY))
@@ -262,8 +285,15 @@ class MainFrame(wx.Frame):
         self.Centre()
         self.Show()
 
-        if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
+        def is_first_run():
+            return not os.path.isfile(os.path.join(DATA_PATH, "id_rsa"))
+
+        if is_first_run():
             self.start_first_time_wizard()
+
+        
+        if not is_first_run():
+            self.Hide()
 
         self.m_log_label = xrc.XRCCTRL(self.panel, 'm_log_label')
 
@@ -271,7 +301,7 @@ class MainFrame(wx.Frame):
 
         ## End Window init stuff ##
 
-        # print(len(self.GetParent().sync_jobs))
+        # print(len(self.sync_jobs))
 
         self.m_console = xrc.XRCCTRL(self.panel, 'm_console')
 
@@ -293,453 +323,8 @@ class MainFrame(wx.Frame):
         pub.subscribe(self.update_end_job, END_JOB_MSG)
 
         # print(wx.geta.sync_jobs)
-
-    def select_backup(self, event):
-        item = event.GetItem()
-        job_name = item.GetText()
-        self.current_job = job_name
-        self.display_job(job_name)
-
-        self.m_run_btn.Enable()
-        self.m_edit_btn.Enable()
-        self.m_delete_btn.Enable()
-        self.m_go_to_server_btn.Enable()
-
-        return
-
-    def deselect_backup(self, event):
-        self.current_job = None
-
-        self.m_run_btn.Disable()
-        self.m_edit_btn.Disable()
-        self.m_delete_btn.Disable()
-
-    def run_job(self, event):
-        if debug:
-            print("Running: " + str(self.current_job))
-        job = self.GetParent().get_job_by_name(self.current_job)
-        if not job.running():
-            job.run_backup()
-        else:
-            print("Job already running")
-            wx.MessageDialog(self, 'Job "' + job.name + '" already running', caption="Job already running",
-              style=wx.OK|wx.CENTRE, pos=wx.DefaultPosition).ShowModal()
-
-
-    def delete_job(self, event):
-        dialog = self.res.LoadDialog(self, 'delete_job_dialog')
-        dialog.ShowModal(job_name=self.current_job)
-        self.current_job = None
-
-        return
-
-    def go_to_server(self, event):
-        job = self.GetParent().get_job_by_name(self.current_job)
-        print(job.server_url)
-        print(job.server_username)
-        dest = job.dest.split("::")[1]
-        dest = "/".join(dest.split("/")[2:])
-
-        url = job.server_url + "/browse/" + job.server_username + "/" + dest
-        if debug:
-            print(url)
-        webbrowser.open(url)
-        return
-
-
-    def start_first_time_wizard(self, event=None):
-        wizard = self.res.LoadObject(None, 'first_run_wizard', 'wxWizard')
-        page1 = wx.xrc.XRCCTRL(wizard, 'm_wizPage1')
-        wizard.RunWizard(page1)
-
-    def select_run(self, event):
-        self.current_run = event.Index
-        item = event.GetItem()
-        run_name = item.GetText()
-        if debug:
-            print("Selected run: " + run_name)
-        self.display_run(self.current_job, run_name)
-
-    def display_job(self, job_name):
-        self.m_list_runs.DeleteAllItems()
-        self.m_console.SetValue("")
-        job = self.GetParent().get_job_by_name(job_name)
-
-        for i, file_name in enumerate(job.get_log_files()):
-            self.m_list_runs.InsertItem(i, job.name)
-            if debug:
-                print(i, file_name)
-            self.m_list_runs.SetItem(i, self.m_list_runs.data_keys.index("id"), file_name)
-            self.m_list_runs.SetItem(i, self.m_list_runs.data_keys.index("Time Ran"), job.get_run_created(file_name))
-        self.m_list_runs.resizeLastColumn(0)
-
-        return
-
-    def display_run(self, job_name, run_name):
-        self.m_console.SetValue("")
-        log = self.GetParent().get_job_by_name(job_name).get_log(run_name)
-
-        self.m_console.SetValue(log)
-        return
-
-    def update_list_sync(self):
-        items_num = self.m_list_syncs.GetItemCount()
-        sync_jobs_list = list(self.GetParent().sync_jobs)
-        self.m_list_syncs.DeleteAllItems()
-
-        for i, job in enumerate(sync_jobs_list):
-            self.m_list_syncs.InsertItem(i, job.name)
-            for j, key in enumerate(self.m_list_syncs.data_keys):
-                self.m_list_syncs.SetItem(i, j, job.__dict__[key])
-
-        self.m_list_syncs.resizeLastColumn(0)
-
-    def set_row_runnung(self, name, color):
-        items_num = self.m_list_syncs.GetItemCount()
-        name_col = self.m_list_syncs.data_keys.index("name")
-
-        for i in range(items_num):
-            name_in_list = self.m_list_syncs.GetItem(i, name_col).GetText()
-            if name_in_list == name:
-                self.m_list_syncs.SetItemTextColour(i, color)
-        return
-
-    def add_new_job_to_run_list(self, name):
-        name_col = self.m_list_syncs.data_keys.index("name")
-
-        selected_item = self.m_list_syncs.GetFirstSelected()
-
-        items_num = self.m_list_syncs.GetItemCount()
-        # TODO: debug wx._core.wxAssertionError exception of line below
-        try:
-            name_in_list = self.m_list_syncs.GetItem(selected_item, name_col).GetText()
-
-            job = self.GetParent().get_job_by_name(name)
-
-            # Add item to list if selected
-            item_count = len(job.get_log_files())
-            if name_in_list == name:
-                self.m_list_runs.InsertItem(item_count, str(item_count))
-                if debug:
-                    print(item_count)
-                self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("id"), str(item_count))
-                self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("Time Ran"), "now")
-            self.m_list_runs.resizeLastColumn(0)
-        except wx._core.wxAssertionError as e:
-            print("Got wx._core.wxAssertionError")
-            print(str(traceback.format_exc()))
-            print(e)
-
-    def update_start_job(self, name):
-        self.set_row_runnung(name, "blue")
-        self.add_new_job_to_run_list(name)
-
-
-    def update_end_job(self, name, success):
-        if success:
-            self.set_row_runnung(name, "green")
-        else:
-            self.set_row_runnung(name, "red")
-
-    def exit(self, event):
-        wx.Exit()
-        return
-
-    def show_public_key(self, event):
-        dialog = self.res.LoadDialog(self, 'show_key_dialog')
-        dialog.ShowModal()
-        return
-
-    def show_edit_dialog(self, event):
-        dialog = self.res.LoadDialog(self, 'edit_job_dialog')
-        dialog.ShowModal()
-        return
-
-    def show_create_dialog(self, event):
-        dialog = self.res.LoadDialog(self, 'job_dialog')
-        dialog.ShowModal()
-        return
-
-    def open_settings(self, event):
-        if debug:
-            print("open settings")
-        if get_os() == "windows":
-            os.system("notepad " + quote(CONFIG_PATH))
-        else:
-            os.system("xdg-open '" + CONFIG_PATH + "'")
-        return
-
-    def onClose(self, event):
-        print("closing")
-        # TODO - also delete from memmory
-        # self.Hide()
-        self.Destroy()
-        # print(self)
-
-
-class TaskBarIcon(wx.adv.TaskBarIcon):
-    def __init__(self, frame):
-        self.frame = frame
-        self.frame.SetLayoutDirection(wx.Layout_LeftToRight)
-        super(TaskBarIcon, self).__init__()
-        self.set_icon(TRAY_ICON)
-        self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
-
-    def CreatePopupMenu(self):
-        menu = wx.Menu()
-        # TODO make settings menu
-        # create_menu_item(menu, 'Settings', self.on_hello)
-        self.x = create_menu_item(menu, 'Main', self.on_open_main)
-        menu.AppendSeparator()
-        create_menu_item(menu, 'Exit', self.on_exit)
-        return menu
-
-    def set_icon(self, path):
-        icon = wx.Icon(path)
-        self.SetIcon(icon, TRAY_TOOLTIP)
-
-    def on_left_down(self, event):
-        print('Tray icon was left-clicked.')
-        # TODO: When clicked and main is open, should ask if to minimize
-        self.on_open_main(None)
-
-    def on_hello(self, event):
-        if debug:
-            print('Hello, world!')
-        if not hasattr(self, 'settings_frame'):
-            self.settings_frame = SettingsFrame("Settings", self.frame)
-        else:
-            if not self.settings_frame:
-                print("closed")
-                self.settings_frame = SettingsFrame("Settings", self.frame)
-            # print(self.settings_frame.Show())
-            print(dir(self.settings_frame))
-
-    def on_open_main(self, event):
-        if debug:
-            print('Opening Main')
-        if not hasattr(self, 'main_frame'):
-
-            # self.main_frame = res.LoadObject(self.frame, "MyFrame1", "wxFrame")
-            self.main_frame = MainFrame(self.frame, "Main")
-        else:
-            if not self.main_frame:
-                print("closed")
-                self.main_frame = MainFrame(self.frame, "Main")
-            print(dir(self.main_frame))
-
-    def on_exit(self, event):
-        wx.CallAfter(self.Destroy)
-        self.frame.Close()
-
-
-class SyncProcess(wx.Process):
-    def __init__(self, *args, **kw):
-        self.terminated = False
-        wx.Process.__init__(self, *args, **kw)
-
-    def OnTerminate(self, pid, status):
-        self.terminated = True
-
-
-@dataclass
-class Backup:
-    name: str
-    source: str
-    dest: str
-    port: str
-    key: str
-    server_url: str
-    server_username: str
-    every: str
-    time: str
-    window: wx.Frame
-    test_dummy: bool
-
-    def prepare_job(self):
-        self.process_object = None
-        self.pid = None
-        if debug:
-            print("Starting: " + str(self.name))
-        self.log_file = os.path.join(self.get_run_folder(), str(self.get_id()))
-        return
-
-    def __post_init__(self):
-        self.process_object = None
-        self.pid = None
-        if "__user_data__" in self.key:
-            self.key = self.key.replace("__user_data__", "")
-            if self.key.startswith("\\"):
-                self.key = self.key[1:]
-            self.key = os.path.join(DATA_PATH, self.key)
         
-        if not self.test_dummy and self.every == "daily":
-            # schedule.every().seconds.do(
-            #     lambda: self.run_backup())
-            schedule.every().day.at(self.time).do(lambda: self.run_backup())
-
-    def get_run_folder(self):
-        return os.path.join(DATA_PATH, "jobs_data", str(self.name))
-
-    def get_id(self):
-        run_folder = self.get_run_folder()
-        if not ensure_dir(run_folder):
-            return 0
-
-        log_files = self.get_log_files()
-        for i, folder in enumerate(log_files):
-            # print(i, folder)
-            if str(i) != str(folder):
-                return str(i)
-
-        return len(log_files)
-
-    def get_log_files(self):
-        """ Returns the list of log files sorted by id
-        """
-        run_folder = self.get_run_folder()
-        if not os.path.isdir(run_folder):
-            return []
-        return sorted(os.listdir(run_folder), key=lambda x: float(x))
-
-    def update_log(self, text):
-        with open(self.log_file, "ab") as log:
-            log.write(text)
-
-    def get_log(self, run_name):
-        log_file = os.path.join(self.get_run_folder(), run_name)
-        if not os.path.isfile(log_file):
-            return "Log empty"
-        with open(log_file, "r") as log:
-            return_value = log.read()
-        return return_value
-
-    def get_run_created(self, run_id):
-        run_path = os.path.join(self.get_run_folder(), run_id)
-
-        return time.ctime(os.path.getctime(run_path))
-
-    def running(self):
-        return self.process_object is not None and ( not self.process_object.terminated)
-
-    def test_connection(self):
-        # TODO: Test if path to ssh command exist beforehand
-        if not os.path.isdir(self.source):
-            return "Path does not exist"
-
-        if self.key == "":
-            return "SSH key can't be empty"
-
-        if not os.path.isfile(self.key):
-            return "SSH key path does not exist"
-
-        _, ssh_path = self.get_bin_ssh_path()
-        
-        hostname_and_user = self.dest.split("::")[0]
-        dest_path = self.dest.split("::")[1]
-
-        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "whoami"]
-
-        try:
-            stdout, stderror = _run_command(command)
-            if stderror != "":
-                return stderror
-        except Exception as e:
-            return "Got exception when runnign command: " + str(e)
-        
-
-        # At this point we have a connection that works, the dest folder might be missing
-
-        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "mkdir -p " + dest_path]
-
-        try:
-            stdout, stderror = _run_command(command)
-            if stderror != "":
-                return "Folder on server does not exist or has no permission: " + dest_path
-        except Exception as e:
-            return "Got exception when runnign command: " + str(e)
-
-        return "Connection succeeded"
-    
-    def get_bin_ssh_path(self):
-        bin_path = config["main"]["bin"]
-        ssh_path = config["main"]["ssh"]
-
-        if get_os() == "windows":
-            if debug:
-                print("windows detected, adjusting binary path in package")
-            
-            # rdiff_path = r'"C:\Users\user\Desktop\backupfriend-client\src\rdiff-backup.exe"'
-            # ssh_path = r'C:\Users\user\Desktop\backupfriend-client\ssh.exe'            
-            ssh_path = ssh_path.replace("__package_path__", resource_path())
-            bin_path = bin_path.replace("__package_path__", resource_path())
-        return bin_path, ssh_path
-    
-    def run_backup(self):
-        pub.sendMessage(START_JOB_MSG, name=self.name)
-        self.prepare_job()
-        if debug:
-            print("hello!!!!!!!!!!!!!!")
-        config = get_config()
-
-        self.process_object = SyncProcess(self.window)
-        self.process_object.Redirect()
-        
-        bin_path, ssh_path = self.get_bin_ssh_path()
-        
-        if get_os() == "windows":
-            cmd = [bin_path, "-v6", "--remote-schema",
-                   '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", '"' + self.source + '"',
-                   self.dest]
-            command = " ".join(cmd)
-            
-            known_hosts_location = os.path.realpath(os.path.join(os.path.dirname(ssh_path), "..", "home", os.getlogin()))
-            ensure_dir(known_hosts_location)
-
-        else:
-            cmd = [bin_path,
-                   "-v6",
-                   " --remote-schema 'ssh -p " + str(self.port) + " -o StrictHostKeyChecking=no -i " + self.key + " %s rdiff-backup --server'",
-                   "--", quote(self.source), quote(self.dest)]
-            command = " ".join(cmd)
-
-        if debug:
-            print("running: " + command)
-        print("running: " + str(command))
-        
-        self.pid = wx.Execute(command, wx.EXEC_ASYNC, callback=self.process_object)
-
-        if debug:
-            print("pid: " + str(self.pid))
-        time.sleep(1)
-        stream = self.process_object.GetInputStream()
-
-        while stream is not None and stream.CanRead():
-            text = stream.read()
-            self.update_log(text)
-            wx.LogMessage(text)
-
-        stream_err = self.process_object.GetErrorStream()
-
-        while stream_err is not None and stream_err.CanRead():
-            text = stream_err.read()
-            self.update_log(text)
-            wx.LogMessage(text)
-
-        print("Finish reading")
-        return
-
-
-class MainInvisibleWindow(wx.Frame):
-    def __init__(self):
-        wx.Frame.__init__(self, parent=None)
-
-        self.sync_jobs = []
-        self.add_backups(config["backups"], True)
-        # self.Bind(wx.EVT_IDLE, self.OnIdle)
-
-        self.on_timer()
-
+    # Sync functions logic
     def add_backups(self, backups_list, in_config=False):
         jobs_names = list(map(lambda backup: backup.name, self.sync_jobs))
 
@@ -888,6 +473,459 @@ class MainInvisibleWindow(wx.Frame):
             if job.name == name:
                 return job
         return
+    # End sync functions logic
+
+    def select_backup(self, event):
+        item = event.GetItem()
+        job_name = item.GetText()
+        self.current_job = job_name
+        self.display_job(job_name)
+
+        self.m_run_btn.Enable()
+        self.m_edit_btn.Enable()
+        self.m_delete_btn.Enable()
+        self.m_go_to_server_btn.Enable()
+
+        return
+
+    def deselect_backup(self, event):
+        self.current_job = None
+
+        self.m_run_btn.Disable()
+        self.m_edit_btn.Disable()
+        self.m_delete_btn.Disable()
+
+    def run_job(self, event):
+        if debug:
+            print("Running: " + str(self.current_job))
+        job = self.get_job_by_name(self.current_job)
+        if not job.running():
+            job.run_backup()
+        else:
+            print("Job already running")
+            wx.MessageDialog(self, 'Job "' + job.name + '" already running', caption="Job already running",
+              style=wx.OK|wx.CENTRE, pos=wx.DefaultPosition).ShowModal()
+
+
+    def delete_job(self, event):
+        dialog = self.res.LoadDialog(self, 'delete_job_dialog')
+        dialog.ShowModal(job_name=self.current_job)
+        self.current_job = None
+
+        return
+
+    def go_to_server(self, event):
+        job = self.get_job_by_name(self.current_job)
+        print(job.server_url)
+        print(job.server_username)
+        dest = job.dest.split("::")[1]
+        dest = "/".join(dest.split("/")[2:])
+
+        url = job.server_url + "/browse/" + job.server_username + "/" + dest
+        if debug:
+            print(url)
+        webbrowser.open(url)
+        return
+
+
+    def start_first_time_wizard(self, event=None):
+        wizard = self.res.LoadObject(None, 'first_run_wizard', 'wxWizard')
+        page1 = wx.xrc.XRCCTRL(wizard, 'm_wizPage1')
+        wizard.RunWizard(page1)
+
+    def select_run(self, event):
+        self.current_run = event.Index
+        item = event.GetItem()
+        run_name = item.GetText()
+        if debug:
+            print("Selected run: " + run_name)
+        self.display_run(self.current_job, run_name)
+
+    def display_job(self, job_name):
+        self.m_list_runs.DeleteAllItems()
+        self.m_console.SetValue("")
+        job = self.get_job_by_name(job_name)
+
+        for i, file_name in enumerate(job.get_log_files()):
+            self.m_list_runs.InsertItem(i, job.name)
+            if debug:
+                print(i, file_name)
+            self.m_list_runs.SetItem(i, self.m_list_runs.data_keys.index("id"), file_name)
+            self.m_list_runs.SetItem(i, self.m_list_runs.data_keys.index("Time Ran"), job.get_run_created(file_name))
+        self.m_list_runs.resizeLastColumn(0)
+
+        return
+
+    def display_run(self, job_name, run_name):
+        self.m_console.SetValue("")
+        job = self.get_job_by_name(job_name)
+        if job is not None:
+            log = job.get_log(run_name)
+            self.m_console.SetValue(log)
+        else:
+            self.m_console.SetValue("Log not generated")
+        return
+
+    def update_list_sync(self):
+        items_num = self.m_list_syncs.GetItemCount()
+        sync_jobs_list = list(self.sync_jobs)
+        self.m_list_syncs.DeleteAllItems()
+
+        for i, job in enumerate(sync_jobs_list):
+            self.m_list_syncs.InsertItem(i, job.name)
+            for j, key in enumerate(self.m_list_syncs.data_keys):
+                self.m_list_syncs.SetItem(i, j, job.__dict__[key])
+
+        self.m_list_syncs.resizeLastColumn(0)
+
+    def set_row_runnung(self, name, color):
+        items_num = self.m_list_syncs.GetItemCount()
+        name_col = self.m_list_syncs.data_keys.index("name")
+
+        for i in range(items_num):
+            name_in_list = self.m_list_syncs.GetItem(i, name_col).GetText()
+            if name_in_list == name:
+                self.m_list_syncs.SetItemTextColour(i, color)
+        return
+
+    def add_new_job_to_run_list(self, name):
+        name_col = self.m_list_syncs.data_keys.index("name")
+
+        selected_item = self.m_list_syncs.GetFirstSelected()
+
+        items_num = self.m_list_syncs.GetItemCount()
+        # TODO: debug wx._core.wxAssertionError exception of line below
+        try:
+            name_in_list = self.m_list_syncs.GetItem(selected_item, name_col).GetText()
+
+            job = self.get_job_by_name(name)
+
+            # Add item to list if selected
+            item_count = len(job.get_log_files())
+            if name_in_list == name:
+                self.m_list_runs.InsertItem(item_count, str(item_count))
+                if debug:
+                    print(item_count)
+                self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("id"), str(item_count))
+                self.m_list_runs.SetItem(item_count, self.m_list_runs.data_keys.index("Time Ran"), "now")
+            self.m_list_runs.resizeLastColumn(0)
+        except wx._core.wxAssertionError as e:
+            print("Got wx._core.wxAssertionError")
+            print(str(traceback.format_exc()))
+            print(e)
+
+    def update_start_job(self, name):
+        self.set_row_runnung(name, "blue")
+        self.add_new_job_to_run_list(name)
+
+
+    def update_end_job(self, name, success):
+        if success:
+            self.set_row_runnung(name, "green")
+        else:
+            self.set_row_runnung(name, "red")
+
+    def exit(self, event):
+        wx.Exit()
+        return
+
+    def show_public_key(self, event):
+        dialog = self.res.LoadDialog(self, 'show_key_dialog')
+        dialog.ShowModal()
+        return
+
+    def show_edit_dialog(self, event):
+        dialog = self.res.LoadDialog(self, 'edit_job_dialog')
+        dialog.ShowModal()
+        return
+
+    def show_create_dialog(self, event):
+        dialog = self.res.LoadDialog(self, 'job_dialog')
+        dialog.ShowModal()
+        return
+
+    def open_settings(self, event):
+        if debug:
+            print("open settings")
+        if get_os() == "windows":
+            os.system("notepad " + quote(CONFIG_PATH))
+        elif get_os() == "osx":
+            os.system("open " + quote(CONFIG_PATH))
+        else:
+            os.system("xdg-open '" + CONFIG_PATH + "'")
+        return
+
+    def onClose(self, event):
+        print("closing")
+        self.Hide()
+        # self.Destroy()
+        # print(self)
+
+
+class TaskBarIcon(wx.adv.TaskBarIcon):
+    def __init__(self, frame, app):
+        self.frame = frame
+        self.app = app
+        self.frame.SetLayoutDirection(wx.Layout_LeftToRight)
+        super(TaskBarIcon, self).__init__()
+        self.set_icon(TRAY_ICON)
+        self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
+
+    def CreatePopupMenu(self):
+        menu = wx.Menu()
+        # TODO make settings menu
+        # create_menu_item(menu, 'Settings', self.on_hello)
+        self.x = create_menu_item(menu, 'Main', self.on_open_main)
+        menu.AppendSeparator()
+        create_menu_item(menu, 'Exit', self.on_exit)
+        return menu
+
+    def set_icon(self, path):
+        icon = wx.Icon(path)
+        self.SetIcon(icon, TRAY_TOOLTIP)
+
+    def on_left_down(self, event):
+        print('Tray icon was left-clicked.')
+        # TODO: When clicked and main is open, should ask if to minimize
+        self.on_open_main(None)
+
+    def on_hello(self, event):
+        if debug:
+            print('Hello, world!')
+        if not hasattr(self, 'settings_frame'):
+            self.settings_frame = SettingsFrame("Settings", self.frame)
+        else:
+            if not self.settings_frame:
+                print("closed")
+                self.settings_frame = SettingsFrame("Settings", self.frame)
+            # print(self.settings_frame.Show())
+            print(dir(self.settings_frame))
+
+    def on_open_main(self, event):
+        if debug:
+            print('Opening Main')
+        self.frame.Show()
+        self.frame.Raise()
+        self.app.SetTopWindow(self.frame)
+
+
+    def on_exit(self, event):
+        wx.CallAfter(self.Destroy)
+        self.frame.Close()
+        self.frame.Destroy()
+
+
+class SyncProcess(wx.Process):
+    def __init__(self, *args, **kw):
+        self.terminated = False
+        wx.Process.__init__(self, *args, **kw)
+
+    def OnTerminate(self, pid, status):
+        self.terminated = True
+
+
+def expand_user_data(path):
+    if "__user_data__" in path:
+        path = path.replace("__user_data__", "")
+        if path.startswith("\\") or path.startswith("/"):
+            path = path[1:]
+        path = os.path.join(DATA_PATH, path)
+    return path
+
+@dataclass
+class Backup:
+    name: str
+    source: str
+    dest: str
+    port: str
+    key: str
+    server_url: str
+    server_username: str
+    every: str
+    time: str
+    window: wx.Frame
+    test_dummy: bool
+
+    def prepare_job(self):
+        self.process_object = None
+        self.pid = None
+        if debug:
+            print("Starting: " + str(self.name))
+        self.log_file = os.path.join(self.get_run_folder(), str(self.get_id()))
+        return
+
+    def __post_init__(self):
+        self.process_object = None
+        self.pid = None
+        self.key = expand_user_data(self.key)
+        
+        if not self.test_dummy and self.every == "daily":
+            # schedule.every().seconds.do(
+            #     lambda: self.run_backup())
+            schedule.every().day.at(self.time).do(lambda: self.run_backup())
+
+    def get_run_folder(self):
+        return os.path.join(DATA_PATH, "jobs_data", str(self.name))
+
+    def get_id(self):
+        run_folder = self.get_run_folder()
+        if not ensure_dir(run_folder):
+            return 0
+
+        log_files = self.get_log_files()
+        for i, folder in enumerate(log_files):
+            # print(i, folder)
+            if str(i) != str(folder):
+                return str(i)
+
+        return len(log_files)
+
+    def get_log_files(self):
+        """ Returns the list of log files sorted by id
+        """
+        run_folder = self.get_run_folder()
+        if not os.path.isdir(run_folder):
+            return []
+        return sorted(os.listdir(run_folder), key=lambda x: float(x))
+
+    def update_log(self, text):
+        with open(self.log_file, "ab") as log:
+            log.write(text)
+
+    def get_log(self, run_name):
+        log_file = os.path.join(self.get_run_folder(), run_name)
+        if not os.path.isfile(log_file):
+            return "Log empty"
+        with open(log_file, "r") as log:
+            return_value = log.read()
+        return return_value
+
+    def get_run_created(self, run_id):
+        run_path = os.path.join(self.get_run_folder(), run_id)
+
+        return time.ctime(os.path.getctime(run_path))
+
+    def running(self):
+        return self.process_object is not None and ( not self.process_object.terminated)
+
+    def test_connection(self):
+        # TODO: Test if path to ssh command exist beforehand
+        if not os.path.isdir(self.source):
+            return "Path does not exist"
+
+        if self.key == "":
+            return "SSH key can't be empty"
+
+        if not os.path.isfile(self.key):
+            return "SSH key path does not exist"
+
+        _, ssh_path = self.get_bin_ssh_path()
+        
+        hostname_and_user = self.dest.split("::")[0]
+        hostname = hostname_and_user.split("@")[1]
+        dest_path = self.dest.split("::")[1]
+
+        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "whoami"]
+
+        try:
+            stdout, stderror, is_timeout = _run_command(command)
+            if is_timeout:
+                return "Failed to conenct to server: " + str(hostname)
+            if stderror != "":
+                return stderror
+        except Exception as e:
+            return "Got exception when running command: " + str(e)
+        
+
+        # At this point we have a connection that works, the dest folder might be missing
+
+        command = [ssh_path, hostname_and_user, "-p", str(self.port), "-o", "StrictHostKeyChecking=no", "-i", self.key, "mkdir -p " + dest_path]
+
+        try:
+            stdout, stderror, is_timeout = _run_command(command)
+            if is_timeout:
+                return "Failed to conenct to server: " + str(hostname)
+            if stderror != "":
+                return "Folder on server does not exist or has no permission: " + dest_path
+        except Exception as e:
+            return "Got exception when running command: " + str(e)
+
+        return "Connection succeeded"
+    
+    def get_bin_ssh_path(self):
+        bin_path = config["main"]["bin"]
+        ssh_path = config["main"]["ssh"]
+
+        if get_os() == "windows":
+            if debug:
+                print("windows detected, adjusting binary path in package")
+            
+            # rdiff_path = r'"C:\Users\user\Desktop\backupfriend-client\src\rdiff-backup.exe"'
+            # ssh_path = r'C:\Users\user\Desktop\backupfriend-client\ssh.exe'            
+            ssh_path = ssh_path.replace("__package_path__", resource_path())
+            bin_path = bin_path.replace("__package_path__", resource_path())
+            
+        elif get_os() == "osx" or get_os() == "linux":
+            # Handle in mac first run from app, or first run from python script
+            if APP_BIN_PATH is not None:
+                bin_path = bin_path.replace("__app_bin_path__", APP_BIN_PATH)
+            else:
+                bin_path = bin_path.replace("__app_bin_path__", "/usr/local/bin")
+        return bin_path, ssh_path
+    
+    def run_backup(self):
+        pub.sendMessage(START_JOB_MSG, name=self.name)
+        self.prepare_job()
+        if debug:
+            print("hello!!!!!!!!!!!!!!")
+        config = get_config()
+
+        self.process_object = SyncProcess(self.window)
+        self.process_object.Redirect()
+        
+        bin_path, ssh_path = self.get_bin_ssh_path()
+        
+        if get_os() == "windows":
+            cmd = [bin_path, "-v6", "--remote-schema",
+                   '"' + ssh_path + " -p " + str(self.port) + " -o StrictHostKeyChecking=no -i '" + self.key + "' %s rdiff-backup --server" + '"', "--", '"' + self.source + '"',
+                   self.dest]
+            command = " ".join(cmd)
+            
+            known_hosts_location = os.path.realpath(os.path.join(os.path.dirname(ssh_path), "..", "home", os.getlogin()))
+            ensure_dir(known_hosts_location)
+
+        else:
+            cmd = [bin_path,
+                   "-v6",
+                   " --remote-schema 'ssh -p " + str(self.port) + " -o StrictHostKeyChecking=no -i \"" + self.key + "\" %s rdiff-backup --server'",
+                   "--", quote(self.source), quote(self.dest)]
+            command = " ".join(cmd)
+
+        if debug:
+            print("running: " + command)
+        print("running: " + str(command))
+        
+        self.pid = wx.Execute(command, wx.EXEC_ASYNC, callback=self.process_object)
+
+        if debug:
+            print("pid: " + str(self.pid))
+        time.sleep(1)
+        stream = self.process_object.GetInputStream()
+
+        while stream is not None and stream.CanRead():
+            text = stream.read()
+            self.update_log(text)
+            wx.LogMessage(text)
+
+        stream_err = self.process_object.GetErrorStream()
+
+        while stream_err is not None and stream_err.CanRead():
+            text = stream_err.read()
+            self.update_log(text)
+            wx.LogMessage(text)
+
+        print("Finish reading")
+        return
 
 
 ##    def OnIdle(self, evt):
@@ -944,12 +982,12 @@ class App(wx.App):
 
         if debug:
             print("Starting App OnInit")
-        frame = MainInvisibleWindow()
+        frame = MainFrame("BackupFriend")
         self.SetTopWindow(frame)
-        taskbar = TaskBarIcon(frame)
+        taskbar = TaskBarIcon(frame, self)
 
-        if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
-            taskbar.on_open_main(None)
+        # if not os.path.isfile(os.path.join(DATA_PATH, "id_rsa")):
+        #     taskbar.on_open_main(None)
         # frame2 = MainFrame(frame, "Main")
 
         return True
