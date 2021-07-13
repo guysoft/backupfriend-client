@@ -4,11 +4,10 @@ main:
 backups:
   - name: "example"
     source: "/tmp"
-    dest: "user@backupfriend.local::/backup/usb/example"
+    dest: "user@backupfriend::/backup/media/usb/example"
     port: "8022"
-    key: "~/Library/Application Support/BackupFriend/id_rsa"
+    key: "__user_data__/id_rsa"
     server_username: admin
     server_url: http://backupfriend
     every: "daily"
     time: "08:00"
-
