@@ -727,7 +727,7 @@ class SyncProcess(wx.Process):
 def expand_user_data(path):
     if "__user_data__" in path:
         path = path.replace("__user_data__", "")
-        if path.startswith("\\"):
+        if path.startswith("\\") or path.startswith("/"):
             path = path[1:]
         path = os.path.join(DATA_PATH, path)
     return path
