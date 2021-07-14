@@ -4,3 +4,5 @@ schedule
 appdirs
 cryptography
 pypubsub
+requests
+packaging

@@ -1,7 +1,10 @@
 import sys
 import os
 from appdirs import user_data_dir
+import requests
 
+GITHUB_URL = "https://github.com/guysoft/backupfriend-client"
+GITHUB_API = "https://api.github.com/repos/guysoft/backupfriend-client"
 
 def ensure_dir(d, chmod=0o777):
     """
@@ -32,3 +35,17 @@ def resource_path():
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     print(base_path)
     return base_path
+
+
+def get_latest_version():
+    """
+    Get latest version, none if no version found
+    """
+    try:
+        response = requests.get(GITHUB_API + "/tags")
+        data = response.json()[0]
+        if "name" in data:
+            return data["name"]
+    except Exception:
+        return
+    return

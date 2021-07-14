@@ -9,7 +9,7 @@ P2APP_OPTIONS = {
     'argv_emulation': False,
     'site_packages': True,
     #'iconfile': 'appicon.icns',
-    'packages': ["schedule", "encodings", "wx",
+    'packages': ["schedule", "encodings", "wx", "requests", "packaging",
                  "appdirs", "cryptography", "rdiff_backup"],
     'plist': {
         'CFBundleName': 'BackupFriend',
@@ -20,10 +20,10 @@ P2APP_OPTIONS = {
     'extra_scripts': ["/usr/local/bin/rdiff-backup"]
 }
 install_requires=[
-        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub"]
+        "wxPython", "PyYAML", "schedule", 'dataclasses;python_version<"3.7"', "appdirs", "rdiff-backup", "cryptography", "pypubsub", "requests", "packaging"]
 
 if sys.platform == "darwin":
-    install_requires = ["wxPython", "schedule", "appdirs", "cryptography", "pypubsub", "pyyaml"]
+    install_requires = ["wxPython", "schedule", "appdirs", "cryptography", "pypubsub", "pyyaml", "requests", "packaging"]
 
 
 setuptools.setup(

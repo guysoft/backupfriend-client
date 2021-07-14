@@ -9,7 +9,8 @@ import schedule
 from dataclasses import dataclass
 import subprocess
 import time
-from backupfriend.common import get_data_path, ensure_dir, resource_path
+from backupfriend.common import get_data_path, ensure_dir, resource_path, get_latest_version, GITHUB_URL
+from backupfriend import __version__ as VERSION
 from collections.abc import Iterable
 import wx.lib.inspection
 import shutil
@@ -18,6 +19,7 @@ from pubsub import pub
 from shlex import quote
 import webbrowser
 import traceback
+from packaging import version
 
 def get_os():
     if sys.platform.startswith("win"):
@@ -642,7 +644,25 @@ class MainFrame(wx.Frame):
         return
     
     def check_updates(self, event):
-        print("Implement check updates")
+        latest = get_latest_version()
+        if latest is None:
+            # Can't get latest version
+            wx.MessageBox("Can't get latest version", "Connection error", wx.OK)
+        elif version.parse(latest) > version.parse(VERSION):
+            # Newer version available
+            wants_to_update = wx.MessageBox(
+                "A new version %s has been found.\n"
+                "Would you like to download it?" % latest, "New version detected",
+                wx.YES_NO | wx.YES_DEFAULT, None) == wx.YES
+            if wants_to_update:
+                webpage = GITHUB_URL + "/releases/tag/" + latest
+                webbrowser.open(webpage)
+        elif version.parse(VERSION) == version.parse(latest):
+            # Using latest version
+            wx.MessageBox("Using the latest version of BackupFriend Client", "Current version is latest", wx.OK)
+        else:
+            # Error occurred looking for latest version
+            wx.MessageBox("Error occurred looking for latest version, current is " + VERSION + ". But latest is " + latest, "Error in version parsing", wx.OK)
         return
 
     def show_edit_dialog(self, event):
