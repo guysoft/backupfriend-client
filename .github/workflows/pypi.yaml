@@ -33,11 +33,6 @@ jobs:
   publish-on-testpypi:
     name: 📦 Publish on TestPyPI
     if: github.event_name == 'release'
-    needs:
-      - pre-commit
-      - test-unit
-      - test-install
-      - test-e2e
     runs-on: ubuntu-latest
     steps:
       - name: ⬇ Download build result
