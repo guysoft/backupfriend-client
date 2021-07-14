@@ -47,7 +47,7 @@ setuptools.setup(
         "": "src",
     },
     data_files=[('images', ['src/backupfriend/images/icon.png']),
-                ('config', ['src/backupfriend/config/config.yml', 'src/backupfriend/config/config-osx.yml']),
+                ('config', ['src/backupfriend/config/config.yml', 'src/backupfriend/config/config-osx.yml', 'src/backupfriend/config/config-windows.yml']),
                 ('res', ['src/backupfriend/res/main.xrc'])],
     include_package_data=True,
     install_requires=install_requires,
