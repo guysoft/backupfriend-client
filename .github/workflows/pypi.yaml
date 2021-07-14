@@ -32,7 +32,7 @@ jobs:
           path: dist
   publish-on-testpypi:
     name: 📦 Publish on TestPyPI
-    if: github.event_name == 'release'
+    # if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
       - name: ⬇ Download build result
@@ -50,7 +50,7 @@ jobs:
 
   publish-on-pypi:
     name: 📦 Publish tagged releases to PyPI
-    if: github.event_name == 'release'
+    # if: github.event_name == 'release'
     needs: publish-on-testpypi
     runs-on: ubuntu-latest
     steps:
