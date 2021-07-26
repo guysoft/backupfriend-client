@@ -20,6 +20,7 @@ from shlex import quote
 import webbrowser
 import traceback
 from packaging import version
+import locale
 
 def get_os():
     if sys.platform.startswith("win"):
@@ -1009,6 +1010,7 @@ class Backup:
 class App(wx.App):
 
     def OnInit(self):
+        locale.setlocale(locale.LC_ALL,'C')
         wx.Log.SetActiveTarget(wx.LogStderr())
 
         if debug:
